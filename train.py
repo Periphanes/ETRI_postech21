@@ -67,3 +67,78 @@ model.train()
 iteration = 0
 total_epoch_iteration = 0
 
+pbar = tqdm(total=args.epochs, initial=0, bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}")
+
+for epoch in range(1, args.epochs+1):
+    training_loss = []
+    validation_loss = []
+
+    epoch_losses    = []
+    loss            = 0
+    iter_in_epoch   = 0
+
+    for train_batch in train_loader:
+        if args.trainer == "binary_classification_static":
+            train_x, train_y = train_batch
+    
+        train_x = train_x.to(device)
+        train_y = train_y.to(device)
+
+        iteration               += 1
+        iter_in_epoch           += 1
+        total_epoch_iteration   += 1
+
+        if args.trainer == "binary_classification_static":
+            model, iter_loss = get_trainer(args = args,
+                                           iteration = iteration,
+                                           x = train_x,
+                                           static = None,
+                                           y = train_y,
+                                           model = model,
+                                           device = device,
+                                           scheduler=scheduler,
+                                           optimizer=optimizer,
+                                           criterion=criterion,
+                                           flow_type="train")
+        
+        training_loss.append(iter_loss)
+
+        # print("Training Loss : {}".format(iter_loss))
+
+
+        # Validation Step Start
+        if iteration % (iter_num_per_epoch) == 0:
+            model.eval()
+            val_iteration   = 0
+
+            validation_loss = []
+
+            with torch.no_grad():
+                for idx, val_batch in enumerate(val_loader):
+                    if args.trainer == "binary_classification_static":
+                        val_x, val_y = val_batch
+                    
+                    val_x = val_x.to(device)
+                    val_y = val_y.to(device)
+
+                    if args.trainer == "binary_classification_static":
+                        model, val_loss = get_trainer(args = args,
+                                                      iteration = iteration,
+                                                      x = val_x,
+                                                      static = None,
+                                                      y = val_y,
+                                                      model = model,
+                                                      device = device,
+                                                      scheduler=scheduler,
+                                                      optimizer=optimizer,
+                                                      criterion=criterion,
+                                                      flow_type="test")
+                    
+                    val_iteration += 1
+                    validation_loss.append(val_loss)
+            model.train()
+    pbar.update(1)
+
+    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(sum(validation_loss)/len(validation_loss)))
+    pbar.refresh()
+
