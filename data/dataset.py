@@ -18,6 +18,9 @@ class binary_static_Dataset(torch.utils.data.Dataset):
                 if len(data_point["total_emot"]) > 1:
                     continue
 
+                if data_point["text"] == None:
+                    continue
+
                 self._data_list.append(pkl_path)
         
     def __len__(self):
