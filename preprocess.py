@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from tqdm import tqdm
+import pickle
 
 import os
 import csv
@@ -32,7 +33,7 @@ for file_name in file_names_annotation:
     if file_name.endswith(".csv"):
         annotation_csv_files.append(file_name)
 
-for file_name in annotation_csv_files:
+for file_name in tqdm(annotation_csv_files):
     with open(os.path.join(path_name, annotation_dir, file_name), newline='') as file:
         session_num = int(file_name.split("_")[0][-2:])
         session_gen = file_name.split("_")[1]
@@ -85,3 +86,8 @@ for file_name in annotation_csv_files:
             # sample_point["wav"] = ...
             # sample_point["edg"] = ...
             # sample_point["temp"] = ...
+
+            sample_name = "dataset/processed/" +str(session_num).zfill(2) + "_" + session_gen + "_" + sample_point["segment_id"]
+
+            with open(sample_name+'.pickle', 'wb') as handle:
+                pickle.dump(sample_point, handle, protocol=pickle.HIGHEST_PROTOCOL)
