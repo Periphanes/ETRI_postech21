@@ -7,7 +7,7 @@ import torch.nn.functional as F
 class DEFAULT_MODEL(nn.Module):
     def __init__(self, args):
         super().__init__()
-
+        
         self.args = args
     
     def forward(self, x):
