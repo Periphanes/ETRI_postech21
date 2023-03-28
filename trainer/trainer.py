@@ -20,12 +20,18 @@ def binary_classification_static(args, iteration, x, y, model, device, scheduler
         nn.utils.clip_grad_norm_(model.parameters(), 5)
 
         optimizer.step()
-        scheduler.step(iteration)
+        scheduler.step()
+
+    elif flow_type == "val":
+        output = model(x)
+        output = output.squeeze()
+
+        loss = criterion(output, y)
 
     else:
         output = model(x)
         output = output.squeeze()
 
-        loss = criterion(output, y)
+        return output, y
     
     return model, loss.item()

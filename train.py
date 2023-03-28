@@ -16,6 +16,8 @@ from models import get_model
 from trainer import get_trainer
 from data.data_preprocess import get_data_loader
 
+from sklearn.metrics import classification_report
+
 log_directory = os.path.join(args.dir_result, args.project_name)
 
 # make sure that CUDA uses GPU according to the inserted order
@@ -132,7 +134,7 @@ for epoch in range(1, args.epochs+1):
                                                       scheduler=scheduler,
                                                       optimizer=optimizer,
                                                       criterion=criterion,
-                                                      flow_type="test")
+                                                      flow_type="val")
                     
                     val_iteration += 1
                     validation_loss.append(val_loss)
@@ -142,3 +144,41 @@ for epoch in range(1, args.epochs+1):
     pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(sum(validation_loss)/len(validation_loss)))
     pbar.refresh()
 
+model.eval()
+with torch.no_grad():
+    pred_batches = []
+    true_batches = []
+
+    for test_batch in tqdm(test_loader, total=len(test_loader),
+                           bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}"):
+        if args.trainer == "binary_classification_static":
+            test_x, test_y = test_batch
+        
+        test_x = test_x.to(device)
+        test_y = test_y.to(device)
+
+        if args.trainer == "binary_classification_static":
+            pred, true = get_trainer(args = args,
+                                    iteration = iteration,
+                                    x = test_x,
+                                    static = None,
+                                    y = test_y,
+                                    model = model,
+                                    device = device,
+                                    scheduler=scheduler,
+                                    optimizer=optimizer,
+                                    criterion=criterion,
+                                    flow_type="test")
+
+        pred_batches.append(pred)
+        true_batches.append(true)
+
+pred = torch.argmax(torch.cat(pred_batches), dim=1)
+true = torch.argmax(torch.cat(true_batches), dim=1)
+
+target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
+
+print(pred[0])
+print(true[0])
+
+print(classification_report(true, pred))
