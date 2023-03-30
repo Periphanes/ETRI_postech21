@@ -32,7 +32,7 @@ def get_data_loader(args):
             test_data_list.append(data_file)
     
     random.shuffle(train_data_list)
-    val_len = int(float(len(train_data_list)) / 3)
+    val_len = int(float(len(train_data_list)) / 4)
     val_data_list = train_data_list[:val_len]
     train_data_list = train_data_list[val_len:]
 

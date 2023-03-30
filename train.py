@@ -181,4 +181,4 @@ target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust
 print(pred[0])
 print(true[0])
 
-print(classification_report(true, pred))
+print(classification_report(true, pred, target_names=target_names))
