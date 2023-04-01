@@ -53,7 +53,7 @@ train_loader, val_loader, test_loader = get_data_loader(args)
 model = get_model(args)
 model = model(args).to(device)
 
-criterion = nn.BCELoss(reduction='mean')
+criterion = nn.CrossEntropyLoss(reduction='mean')
 
 optimizer = optim.Adam(model.parameters(), lr=args.lr_init)
 
@@ -63,7 +63,7 @@ iter_num_total = args.epochs * iter_num_per_epoch
 print("# of Iterations (per epoch): ",  iter_num_per_epoch)
 print("# of Iterations (total): ",      iter_num_total)
 
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.1)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.9)
 
 model.train()
 iteration = 0
@@ -106,7 +106,6 @@ for epoch in range(1, args.epochs+1):
         training_loss.append(iter_loss)
 
         # print("Training Loss : {}".format(iter_loss))
-
 
         # Validation Step Start
         if iteration % (iter_num_per_epoch) == 0:
@@ -174,11 +173,11 @@ with torch.no_grad():
         true_batches.append(true)
 
 pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
-true = torch.argmax(torch.cat(true_batches), dim=1).cpu()
+true = torch.cat(true_batches).cpu()
 
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 
-print(pred[0])
-print(true[0])
+print(pred[0].item())
+print(true[0].item())
 
 print(classification_report(true, pred, target_names=target_names))

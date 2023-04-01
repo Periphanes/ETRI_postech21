@@ -23,11 +23,10 @@ def collate_static(train_data):
 
         X_batch.append(torch.tensor(X))
 
-        y = F.one_hot(torch.tensor(data_point["total_emot"][0]), 7)
-        y = y.squeeze()
+        y = data_point["total_emot"][0]
         y_batch.append(y)
     
     X = torch.stack(X_batch)
-    y = torch.stack(y_batch)
+    y = torch.tensor(y_batch)
 
     return X, y
