@@ -173,8 +173,8 @@ with torch.no_grad():
         pred_batches.append(pred)
         true_batches.append(true)
 
-pred = torch.argmax(torch.cat(pred_batches), dim=1)
-true = torch.argmax(torch.cat(true_batches), dim=1)
+pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
+true = torch.argmax(torch.cat(true_batches), dim=1).cpu()
 
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 
