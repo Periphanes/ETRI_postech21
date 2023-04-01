@@ -6,8 +6,8 @@ import numpy as np
 from control.config import args
 
 def binary_classification_static(args, iteration, x, y, model, device, scheduler, optimizer, criterion, flow_type=None):
-    x = x.type(torch.FloatTensor)
-    y = y.type(torch.FloatTensor)
+    x = x.type(torch.FloatTensor).to(device)
+    y = y.type(torch.FloatTensor).to(device)
 
     if flow_type == "train":
         optimizer.zero_grad()
