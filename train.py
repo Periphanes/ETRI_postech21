@@ -18,6 +18,8 @@ from data.data_preprocess import get_data_loader
 
 from sklearn.metrics import classification_report
 
+from transformers import ElectraForSequenceClassification
+
 log_directory = os.path.join(args.dir_result, args.project_name)
 
 # make sure that CUDA uses GPU according to the inserted order
@@ -43,17 +45,19 @@ if args.cpu or not torch.cuda.is_available():
 else:
     device = torch.device('cuda')
 
-if args.input_types == "static":
+if args.input_types == "static" or args.input_types == "txt":
     args.trainer = "binary_classification_static"
 else:
     raise NotImplementedError("Trainer Not Implemented Yet")
 
 train_loader, val_loader, test_loader = get_data_loader(args)
+if args.input_types == "txt":
+    model = ElectraForSequenceClassification.from_pretrained("beomi/KcELECTRA-base").to(device)
+else:    
+    model = get_model(args)
+    model = model(args).to(device)
 
-model = get_model(args)
-model = model(args).to(device)
-
-criterion = nn.CrossEntropyLoss(reduction='mean')
+criterion = nn.BCELoss(reduction='mean')
 
 optimizer = optim.Adam(model.parameters(), lr=args.lr_init)
 
@@ -63,7 +67,7 @@ iter_num_total = args.epochs * iter_num_per_epoch
 print("# of Iterations (per epoch): ",  iter_num_per_epoch)
 print("# of Iterations (total): ",      iter_num_total)
 
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.9)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.1)
 
 model.train()
 iteration = 0
@@ -106,6 +110,7 @@ for epoch in range(1, args.epochs+1):
         training_loss.append(iter_loss)
 
         # print("Training Loss : {}".format(iter_loss))
+
 
         # Validation Step Start
         if iteration % (iter_num_per_epoch) == 0:
@@ -173,11 +178,11 @@ with torch.no_grad():
         true_batches.append(true)
 
 pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
-true = torch.cat(true_batches).cpu()
+true = torch.argmax(torch.cat(true_batches), dim=1).cpu()
 
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 
-print(pred[0].item())
-print(true[0].item())
+print(pred[0])
+print(true[0])
 
 print(classification_report(true, pred, target_names=target_names))

@@ -40,12 +40,19 @@ def get_data_loader(args):
         train_data      = binary_static_Dataset(args, data=train_data_list, data_type="training dataset")
         val_data        = binary_static_Dataset(args, data=val_data_list, data_type="validation dataset")
         test_data       = binary_static_Dataset(args, data=test_data_list, data_type="testing dataset")
-
-    train_loader = DataLoader(  train_data, batch_size=args.batch_size, drop_last=True,
-                                collate_fn=collate_static)
-    val_loader = DataLoader(    val_data, batch_size=args.batch_size, drop_last=True,
-                                collate_fn=collate_static)
-    test_loader = DataLoader(   test_data, batch_size=args.batch_size, drop_last=True,
-                                collate_fn=collate_static)
+    if args.input_types == "txt":
+        train_loader = DataLoader(  train_data, batch_size=args.batch_size, drop_last=True,
+                                collate_fn=collate_txt)
+        val_loader = DataLoader(    val_data, batch_size=args.batch_size, drop_last=True,
+                                collate_fn=collate_txt)
+        test_loader = DataLoader(   test_data, batch_size=args.batch_size, drop_last=True,
+                                collate_fn=collate_txt)
+    else:
+        train_loader = DataLoader(  train_data, batch_size=args.batch_size, drop_last=True,
+                                    collate_fn=collate_static)
+        val_loader = DataLoader(    val_data, batch_size=args.batch_size, drop_last=True,
+                                    collate_fn=collate_static)
+        test_loader = DataLoader(   test_data, batch_size=args.batch_size, drop_last=True,
+                                    collate_fn=collate_static)
 
     return train_loader, val_loader, test_loader
