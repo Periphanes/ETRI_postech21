@@ -270,7 +270,7 @@ def cli():
     from . import available_models
 
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("audio", nargs="+", type=str, help="audio file(s) to transcribe")
+    parser.add_argument("audio", default=None, nargs="+", type=str, help="audio file(s) to transcribe")
     parser.add_argument("--model", default="small", choices=available_models(), help="name of the Whisper model to use")
     parser.add_argument("--model_dir", type=str, default=None, help="the path to save model files; uses ~/.cache/whisper by default")
     parser.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu", help="device to use for PyTorch inference")
@@ -328,17 +328,23 @@ def cli():
 
         audio_basename = os.path.basename(audio_path)
 
-        # save TXT
-        with open(os.path.join(output_dir, audio_basename + ".txt"), "w", encoding="utf-8") as txt:
-            write_txt(result["segments"], file=txt)
+        #! ------------- DEBUGGING --------------
+        import pickle
+        with open(f"/Users/kimsan/Desktop/ETRI_postech21/whisper/sample/{audio_basename}.pkl", "wb") as file:
+            pickle.dump(result, file)
+        #! --------------------------------------
 
-        # save VTT
-        with open(os.path.join(output_dir, audio_basename + ".vtt"), "w", encoding="utf-8") as vtt:
-            write_vtt(result["segments"], file=vtt)
+        # # save TXT
+        # with open(os.path.join(output_dir, audio_basename + ".txt"), "w", encoding="utf-8") as txt:
+        #     write_txt(result["segments"], file=txt)
 
-        # save SRT
-        with open(os.path.join(output_dir, audio_basename + ".srt"), "w", encoding="utf-8") as srt:
-            write_srt(result["segments"], file=srt)
+        # # save VTT
+        # with open(os.path.join(output_dir, audio_basename + ".vtt"), "w", encoding="utf-8") as vtt:
+        #     write_vtt(result["segments"], file=vtt)
+
+        # # save SRT
+        # with open(os.path.join(output_dir, audio_basename + ".srt"), "w", encoding="utf-8") as srt:
+        #     write_srt(result["segments"], file=srt)
 
 
 if __name__ == '__main__':
