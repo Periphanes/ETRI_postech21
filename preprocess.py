@@ -1,7 +1,9 @@
 import numpy as np
+import pandas as pd
 import torch
 from tqdm import tqdm
 import pickle
+from transformers import AutoTokenizer, ElectraForSequenceClassification
 
 import os
 import csv
@@ -32,6 +34,9 @@ file_names_annotation = os.listdir(os.path.join(path_name, annotation_dir))
 for file_name in file_names_annotation:
     if file_name.endswith(".csv"):
         annotation_csv_files.append(file_name)
+
+tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base")
+tokenizer.add_tokens(["c/", "n/", "N/", "u/", "l/", "b/", "*", "+", "/"])
 
 for file_name in tqdm(annotation_csv_files):
     with open(os.path.join(path_name, annotation_dir, file_name), newline='') as file:
@@ -79,6 +84,20 @@ for file_name in tqdm(annotation_csv_files):
             
             try:
                 with open(os.path.join(path_name, wav_file_dir, sample_point["segment_id"] + ".txt"), "r", encoding="UTF8") as txt_file:
+                    text = txt_file.read()[:-1]
+                    inputs = tokenizer(
+                                text,
+                                return_tensors='pt',
+                                truncation=True,
+                                max_length=256,
+                                pad_to_max_length=True,
+                                add_special_tokens=True
+                                )
+                    input_ids = inputs['input_ids'][0]
+                    attention_mask = inputs['attention_mask'][0]
+
+                    sample_point["input_ids"] = input_ids
+                    sample_point["attention_mask"] = attention_mask
                     sample_point["text"] = txt_file.read()[:-1]
             except FileNotFoundError:
                 sample_point["text"] = None
