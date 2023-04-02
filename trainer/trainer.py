@@ -35,3 +35,35 @@ def binary_classification_static(args, iteration, x, y, model, device, scheduler
         return output, y
     
     return model, loss.item()
+
+def classification_with_txt_static(args, iteration, x1, x2, y, model, device, scheduler, optimizer, criterion, flow_type=None):
+    x1 = x1.type(torch.LongTensor).to(device)
+    x2 = x2.type(torch.LongTensor).to(device)
+    y = y.type(torch.FloatTensor).to(device)
+
+    if flow_type == "train":
+        optimizer.zero_grad()
+        output = model(x1, x2)
+        output = output.squeeze()
+
+        loss = criterion(output, y)
+        loss.backward()
+
+        nn.utils.clip_grad_norm_(model.parameters(), 5)
+
+        optimizer.step()
+        scheduler.step()
+
+    elif flow_type == "val":
+        output = model(x1, x2)
+        output = output.squeeze()
+
+        loss = criterion(output, y)
+
+    else:
+        output = model(x1, x2)
+        output = output.squeeze()
+
+        return output, y
+    
+    return model, loss.item()

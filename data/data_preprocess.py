@@ -36,10 +36,11 @@ def get_data_loader(args):
     val_data_list = train_data_list[:val_len]
     train_data_list = train_data_list[val_len:]
 
-    if args.trainer == "binary_classification_static":
+    if args.trainer == "binary_classification_static" or args.trainer == "classification_with_txt_static":
         train_data      = binary_static_Dataset(args, data=train_data_list, data_type="training dataset")
         val_data        = binary_static_Dataset(args, data=val_data_list, data_type="validation dataset")
         test_data       = binary_static_Dataset(args, data=test_data_list, data_type="testing dataset")
+
     if args.input_types == "txt":
         train_loader = DataLoader(  train_data, batch_size=args.batch_size, drop_last=True,
                                 collate_fn=collate_txt)

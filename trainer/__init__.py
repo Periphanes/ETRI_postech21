@@ -3,6 +3,8 @@ from .trainer import *
 def get_trainer(args, iteration, x, static, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     if args.trainer == "binary_classification_static":
         model, iter_loss = binary_classification_static(args, iteration, x, y, model, device, scheduler, optimizer, criterion, flow_type)
+    elif args.trainer == "classification_with_txt_static":
+        model, iter_loss = classification_with_txt_static(args, iteration, x[0], x[1], y, model, device, scheduler, optimizer, criterion, flow_type)
     else:
         print("Selected Trainer is Not Prepared Yet...")
         exit(1)

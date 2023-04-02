@@ -18,8 +18,6 @@ from data.data_preprocess import get_data_loader
 
 from sklearn.metrics import classification_report
 
-from transformers import ElectraForSequenceClassification
-
 log_directory = os.path.join(args.dir_result, args.project_name)
 
 # make sure that CUDA uses GPU according to the inserted order
@@ -45,21 +43,22 @@ if args.cpu or not torch.cuda.is_available():
 else:
     device = torch.device('cuda')
 
-if args.input_types == "static" or args.input_types == "txt":
+if args.input_types == "static":
     args.trainer = "binary_classification_static"
+elif args.input_types == "txt":
+    args.trainer = "classification_with_txt_static"
 else:
     raise NotImplementedError("Trainer Not Implemented Yet")
 
 train_loader, val_loader, test_loader = get_data_loader(args)
-if args.input_types == "txt":
-    model = ElectraForSequenceClassification.from_pretrained("beomi/KcELECTRA-base").to(device)
-else:    
-    model = get_model(args)
-    model = model(args).to(device)
 
-criterion = nn.BCELoss(reduction='mean')
+model = get_model(args)
+model = model(args).to(device)
+
+criterion = nn.CrossEntropyLoss(reduction='mean')
 
 optimizer = optim.Adam(model.parameters(), lr=args.lr_init)
+# optimizer = optim.AdamW(model.parameters(), lr=5e-6)
 
 iter_num_per_epoch = len(train_loader)
 iter_num_total = args.epochs * iter_num_per_epoch
@@ -67,7 +66,7 @@ iter_num_total = args.epochs * iter_num_per_epoch
 print("# of Iterations (per epoch): ",  iter_num_per_epoch)
 print("# of Iterations (total): ",      iter_num_total)
 
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=2, gamma=0.1)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.9)
 
 model.train()
 iteration = 0
@@ -83,29 +82,31 @@ for epoch in range(1, args.epochs+1):
     loss            = 0
     iter_in_epoch   = 0
 
-    for train_batch in train_loader:
+    for train_batch in tqdm(train_loader):
         if args.trainer == "binary_classification_static":
             train_x, train_y = train_batch
-    
-        train_x = train_x.to(device)
-        train_y = train_y.to(device)
+            train_x = train_x.to(device)
+            train_y = train_y.to(device)
+        elif args.trainer == "classification_with_txt_static":
+            train_x, train_y = train_batch
+            train_x = (train_x[0].to(device), train_x[1].to(device))
+            train_y = train_y.to(device)
 
         iteration               += 1
         iter_in_epoch           += 1
         total_epoch_iteration   += 1
 
-        if args.trainer == "binary_classification_static":
-            model, iter_loss = get_trainer(args = args,
-                                           iteration = iteration,
-                                           x = train_x,
-                                           static = None,
-                                           y = train_y,
-                                           model = model,
-                                           device = device,
-                                           scheduler=scheduler,
-                                           optimizer=optimizer,
-                                           criterion=criterion,
-                                           flow_type="train")
+        model, iter_loss = get_trainer(args = args,
+                                        iteration = iteration,
+                                        x = train_x,
+                                        static = None,
+                                        y = train_y,
+                                        model = model,
+                                        device = device,
+                                        scheduler=scheduler,
+                                        optimizer=optimizer,
+                                        criterion=criterion,
+                                        flow_type="train")
         
         training_loss.append(iter_loss)
 
@@ -123,22 +124,24 @@ for epoch in range(1, args.epochs+1):
                 for idx, val_batch in enumerate(val_loader):
                     if args.trainer == "binary_classification_static":
                         val_x, val_y = val_batch
-                    
-                    val_x = val_x.to(device)
-                    val_y = val_y.to(device)
+                        val_x = val_x.to(device)
+                        val_y = val_y.to(device)
+                    if args.trainer == "classification_with_txt_static":
+                        val_x, val_y = val_batch
+                        val_x = (val_x[0].to(device), val_x[1].to(device))
+                        val_y = val_y.to(device)
 
-                    if args.trainer == "binary_classification_static":
-                        model, val_loss = get_trainer(args = args,
-                                                      iteration = iteration,
-                                                      x = val_x,
-                                                      static = None,
-                                                      y = val_y,
-                                                      model = model,
-                                                      device = device,
-                                                      scheduler=scheduler,
-                                                      optimizer=optimizer,
-                                                      criterion=criterion,
-                                                      flow_type="val")
+                    model, val_loss = get_trainer(args = args,
+                                                    iteration = iteration,
+                                                    x = val_x,
+                                                    static = None,
+                                                    y = val_y,
+                                                    model = model,
+                                                    device = device,
+                                                    scheduler=scheduler,
+                                                    optimizer=optimizer,
+                                                    criterion=criterion,
+                                                    flow_type="val")
                     
                     val_iteration += 1
                     validation_loss.append(val_loss)
@@ -157,22 +160,24 @@ with torch.no_grad():
                            bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}"):
         if args.trainer == "binary_classification_static":
             test_x, test_y = test_batch
-        
-        test_x = test_x.to(device)
-        test_y = test_y.to(device)
+            test_x = test_x.to(device)
+            test_y = test_y.to(device)
+        if args.trainer == "classification_with_txt_static":
+            test_x, test_y = test_batch
+            test_x = (test_x[0].to(device), test_x[1].to(device))
+            test_y = test_y.to(device)
 
-        if args.trainer == "binary_classification_static":
-            pred, true = get_trainer(args = args,
-                                    iteration = iteration,
-                                    x = test_x,
-                                    static = None,
-                                    y = test_y,
-                                    model = model,
-                                    device = device,
-                                    scheduler=scheduler,
-                                    optimizer=optimizer,
-                                    criterion=criterion,
-                                    flow_type="test")
+        pred, true = get_trainer(args = args,
+                                iteration = iteration,
+                                x = test_x,
+                                static = None,
+                                y = test_y,
+                                model = model,
+                                device = device,
+                                scheduler=scheduler,
+                                optimizer=optimizer,
+                                criterion=criterion,
+                                flow_type="test")
 
         pred_batches.append(pred)
         true_batches.append(true)
@@ -182,7 +187,7 @@ true = torch.argmax(torch.cat(true_batches), dim=1).cpu()
 
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 
-print(pred[0])
-print(true[0])
+print(pred[0].item())
+print(true[0].item())
 
 print(classification_report(true, pred, target_names=target_names))
