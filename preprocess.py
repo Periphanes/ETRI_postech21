@@ -83,7 +83,7 @@ for file_name in tqdm(annotation_csv_files):
             wav_file_dir = "dataset/KEMDy19/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"][:-5]
             
             try:
-                with open(os.path.join(path_name, wav_file_dir, sample_point["segment_id"] + ".txt"), "r", encoding="UTF8") as txt_file:
+                with open(os.path.join(path_name, wav_file_dir, sample_point["segment_id"] + ".txt"), "r", encoding="UTF-8") as txt_file:
                     text = txt_file.read()[:-1]
                     inputs = tokenizer(
                                 text,
@@ -98,7 +98,7 @@ for file_name in tqdm(annotation_csv_files):
 
                     sample_point["input_ids"] = input_ids
                     sample_point["attention_mask"] = attention_mask
-                    sample_point["text"] = txt_file.read()[:-1]
+                    sample_point["text"] = text
             except FileNotFoundError:
                 sample_point["text"] = None
 

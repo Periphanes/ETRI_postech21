@@ -55,7 +55,12 @@ train_loader, val_loader, test_loader = get_data_loader(args)
 model = get_model(args)
 model = model(args).to(device)
 
-criterion = nn.CrossEntropyLoss(reduction='mean')
+# criterion = nn.BCELoss(reduction='mean')
+frequency = np.array([363, 161, 665, 1714, 316, 526, 159])
+frequency = 1 / frequency
+frequency = frequency / sum(frequency) * 7
+print(frequency)
+criterion = nn.CrossEntropyLoss(reduction='mean', weight=torch.FloatTensor(frequency).to(device))
 
 optimizer = optim.Adam(model.parameters(), lr=args.lr_init)
 # optimizer = optim.AdamW(model.parameters(), lr=5e-6)
@@ -183,11 +188,12 @@ with torch.no_grad():
         true_batches.append(true)
 
 pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
-true = torch.argmax(torch.cat(true_batches), dim=1).cpu()
+
+if args.trainer == "binary_classification_static":
+    true = torch.cat(true_batches).cpu()
+else:
+    true = torch.argmax(torch.cat(true_batches), dim=1).cpu()
 
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
-
-print(pred[0].item())
-print(true[0].item())
 
 print(classification_report(true, pred, target_names=target_names))
