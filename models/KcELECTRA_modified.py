@@ -10,20 +10,21 @@ from transformers import ElectraModel
 class KCELECTRA_MODIFIED(nn.Module):
     def __init__(self, args):
         super().__init__()
-        # self.pretrained_model = ElectraForSequenceClassification.from_pretrained("beomi/KcELECTRA-base", num_labels=7, problem_type="multi_label_classification")
-        self.pretrained_model = ElectraModel.from_pretrained("beomi/KcELECTRA-base")
+        self.pretrained_model = ElectraModel.from_pretrained("beomi/KcELECTRA-base-v2022")
+        self.pretrained_model.resize_token_embeddings(54349)
         
-        self.ff1 = nn.Linear(768, 768)
-        self.ff2 = nn.Linear(768, 256)
-        self.ff3 = nn.Linear(256, 7)
-        self.bn1 = nn.BatchNorm1d(768)
-        self.bn2 = nn.BatchNorm1d(256)
+        self.ff1 = nn.Linear(768, 1024)
+        self.ff2 = nn.Linear(1024, 1024)
+        self.ff3 = nn.Linear(1024, 7)
+        self.bn1 = nn.BatchNorm1d(1024)
+        self.bn2 = nn.BatchNorm1d(1024)
+        self.dp1 = nn.Dropout(0.1)
+        self.dp2 = nn.Dropout(0.1)
     
     def forward(self, x1, x2):
-        # return F.sigmoid(self.pretrained_model(x1, attention_mask=x2)[0])
         output = self.pretrained_model(x1, attention_mask=x2).last_hidden_state
         output = output[:, 0, :]
-        output = F.relu(self.bn1(self.ff1(output)))
-        output = F.relu(self.bn2(self.ff2(output)))
+        output = self.dp1(self.bn1(F.relu(self.ff1(output))))
+        output = self.dp2(self.bn2(F.relu(self.ff2(output))))
         output = self.ff3(output)
         return output

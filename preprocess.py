@@ -35,8 +35,10 @@ for file_name in file_names_annotation:
     if file_name.endswith(".csv"):
         annotation_csv_files.append(file_name)
 
-tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base")
-# tokenizer.add_tokens(["c/", "n/", "N/", "u/", "l/", "b/", "*", "+", "/"])
+tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
+tokenizer.add_tokens(["c/", "n/", "N/", "u/", "l/", "b/", "*", "+", "/"])
+
+print(len(tokenizer))
 
 for file_name in tqdm(annotation_csv_files):
     with open(os.path.join(path_name, annotation_dir, file_name), newline='') as file:
@@ -48,6 +50,8 @@ for file_name in tqdm(annotation_csv_files):
         for row in reader:
             iterate += 1
             if(iterate < 3):
+                continue
+            if row[9].split("_")[2][0] != session_gen:
                 continue
 
             sample_point = {}

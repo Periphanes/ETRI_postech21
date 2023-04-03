@@ -59,7 +59,8 @@ if args.model == "KcELECTRA_modified":
         param.requires_grad = False
 
 # criterion = nn.BCELoss(reduction='mean')
-frequency = np.array([363, 161, 665, 1714, 316, 526, 159])
+# frequency = np.array([363, 161, 665, 1714, 316, 526, 159])
+frequency = np.array([1, 1, 1, 1, 1, 1, 1])
 frequency = 1 / frequency
 frequency = frequency / sum(frequency) * 7
 criterion = nn.CrossEntropyLoss(reduction='mean', weight=torch.FloatTensor(frequency).to(device))
@@ -80,6 +81,8 @@ iteration = 0
 total_epoch_iteration = 0
 
 pbar = tqdm(total=args.epochs, initial=0, bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}")
+
+validation_loss_lst = []
 
 for epoch in range(1, args.epochs+1):
     training_loss = []
@@ -157,6 +160,7 @@ for epoch in range(1, args.epochs+1):
 
     pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(sum(validation_loss)/len(validation_loss)))
     pbar.refresh()
+    validation_loss_lst.append(sum(validation_loss)/len(validation_loss))
 
 model.eval()
 with torch.no_grad():
@@ -195,3 +199,4 @@ true = torch.cat(true_batches).cpu()
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 
 print(classification_report(true, pred, target_names=target_names))
+print(validation_loss_lst)
