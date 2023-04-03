@@ -54,16 +54,18 @@ train_loader, val_loader, test_loader = get_data_loader(args)
 
 model = get_model(args)
 model = model(args).to(device)
+if args.model == "KcELECTRA_modified":
+    for param in model.pretrained_model.parameters():
+        param.requires_grad = False
 
 # criterion = nn.BCELoss(reduction='mean')
 frequency = np.array([363, 161, 665, 1714, 316, 526, 159])
 frequency = 1 / frequency
 frequency = frequency / sum(frequency) * 7
-print(frequency)
 criterion = nn.CrossEntropyLoss(reduction='mean', weight=torch.FloatTensor(frequency).to(device))
 
-optimizer = optim.Adam(model.parameters(), lr=args.lr_init)
-# optimizer = optim.AdamW(model.parameters(), lr=5e-6)
+# optimizer = optim.Adam(model.parameters(), lr=args.lr_init)
+optimizer = optim.AdamW(model.parameters(), lr=args.lr_init)
 
 iter_num_per_epoch = len(train_loader)
 iter_num_total = args.epochs * iter_num_per_epoch
@@ -71,7 +73,7 @@ iter_num_total = args.epochs * iter_num_per_epoch
 print("# of Iterations (per epoch): ",  iter_num_per_epoch)
 print("# of Iterations (total): ",      iter_num_total)
 
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.9)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=1)
 
 model.train()
 iteration = 0
@@ -188,11 +190,7 @@ with torch.no_grad():
         true_batches.append(true)
 
 pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
-
-if args.trainer == "binary_classification_static":
-    true = torch.cat(true_batches).cpu()
-else:
-    true = torch.argmax(torch.cat(true_batches), dim=1).cpu()
+true = torch.cat(true_batches).cpu()
 
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 

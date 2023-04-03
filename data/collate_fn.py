@@ -46,12 +46,11 @@ def collate_txt(train_data):
         X_batch_id.append(X_id)
         X_batch_attention.append(X_attention)
 
-        y = F.one_hot(torch.tensor(data_point["total_emot"][0]), 7)
-        y = y.squeeze()
+        y = data_point["total_emot"][0]
         y_batch.append(y)
     
     X_ids = torch.stack(X_batch_id)
     X_attention_mask = torch.stack(X_batch_attention)
-    y = torch.stack(y_batch)
+    y = torch.tensor(y_batch)
 
     return (X_ids, X_attention_mask), y

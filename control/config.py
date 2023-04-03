@@ -9,7 +9,7 @@ parser.add_argument('--seed-list', type=list, default=[5,23,7,89,4])
 parser.add_argument('--cpu', type=bool, default=False)
 
 parser.add_argument('--input-types', type=str, default="static", choices=["static", "txt", "wav", "sig", "txt_wav"])
-parser.add_argument('--model', type=str, default="default_model", choices=["default_model", "KcELECTRA"])
+parser.add_argument('--model', type=str, default="default_model", choices=["default_model", "KcELECTRA", "KcELECTRA_modified"])
 
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch-size', type=int, default=16)

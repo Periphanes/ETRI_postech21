@@ -39,13 +39,13 @@ def binary_classification_static(args, iteration, x, y, model, device, scheduler
 def classification_with_txt_static(args, iteration, x1, x2, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     x1 = x1.type(torch.LongTensor).to(device)
     x2 = x2.type(torch.LongTensor).to(device)
-    y = y.type(torch.FloatTensor).to(device)
+    y = y.type(torch.LongTensor).to(device)
 
     if flow_type == "train":
         optimizer.zero_grad()
         output = model(x1, x2)
         output = output.squeeze()
-
+        
         loss = criterion(output, y)
         loss.backward()
 
