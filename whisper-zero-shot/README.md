@@ -6,12 +6,11 @@ Demo: https://huggingface.co/spaces/Jumon/whisper-zero-shot-audio-classification
 ## Quick Start
 This is a general framework for doing zero-shot classification using Whisper. 
 
-*Please note that this model is not yet trained specifically on KEMDy19 dataset*
+*Next step: The performance can perhaps be improved by additional fine-tuning.*
 
 To test zero-shot classification using Whisper on KEMDy19/wav/Session01/Sess01_impro01/*.wav, run `chmod +x job.sh; ./job.sh`. The job script classifies all `.wav` files in `.../Sess01_impro01/` into the following categories: `surprise, fear, anger, neutral, sad, happy, disgust`. The results are stores in `result.json`.
 
 In `class_name.txt`, there are class labels for KEMDy19 dataset which are fed into the model as an input token.
-
 
 ## How does it work?
 Whisper is an automatic speech recognition (ASR) model trained on a massive amount of labeled audio data collected from the internet.
