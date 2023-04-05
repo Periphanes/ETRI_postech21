@@ -14,14 +14,22 @@ def get_data_loader(args):
 
     print("Initializing Data Loader and Datasets")
 
-    session_ids = [i for i in range(1,21)]
-    random.shuffle(session_ids)
+    if args.datasets == "default":
+        session_ids = [i for i in range(1,21)]
+        random.shuffle(session_ids)
 
-    session_ids_20 = [i for i in range(21,41)]
-    random.shuffle(session_ids_20)
+        train_ids = session_ids[:16]
+        test_ids = session_ids[16:]
+    
+    if args.datasets == "augmented":
+        session_ids = [i for i in range(1,21)]
+        random.shuffle(session_ids)
 
-    train_ids = session_ids[:16] + session_ids_20[:16]
-    test_ids = session_ids[16:] + session_ids_20[16:]
+        session_ids_20 = [i for i in range(21,41)]
+        random.shuffle(session_ids_20)
+
+        train_ids = session_ids[:16] + session_ids_20[:16]
+        test_ids = session_ids[16:] + session_ids_20[16:]
 
     train_data_list = []
     test_data_list = []
@@ -31,7 +39,7 @@ def get_data_loader(args):
         data_session_id = int(data_file.split("/")[-1][4:6])
         if data_session_id in train_ids:
             train_data_list.append(data_file)
-        else:
+        elif data_session_id in test_ids:
             test_data_list.append(data_file)
     
     random.shuffle(train_data_list)

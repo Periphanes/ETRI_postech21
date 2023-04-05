@@ -7,6 +7,7 @@ parser.add_argument('--dir-result', type=str, default='.')
 parser.add_argument('--project-name', type=str, default='proj')
 parser.add_argument('--seed-list', type=list, default=[5,23,7,89,4])
 parser.add_argument('--cpu', type=bool, default=False)
+parser.add_argument('--datasets', type=str, default="default", choices=["default", "augmented"])
 
 parser.add_argument('--input-types', type=str, default="static", choices=["static", "txt", "wav", "sig", "txt_wav"])
 parser.add_argument('--model', type=str, default="default_model", choices=["default_model", "KcELECTRA", "KcELECTRA_modified"])
