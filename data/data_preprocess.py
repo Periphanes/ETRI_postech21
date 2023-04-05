@@ -25,7 +25,7 @@ def get_data_loader(args):
 
     file_dir = os.listdir(os.path.join(os.getcwd(), 'dataset/processed'))
     for data_file in file_dir:
-        data_session_id = int(data_file.split("/")[-1][:2])
+        data_session_id = int(data_file.split("/")[-1][4:6])
         if data_session_id in train_ids:
             train_data_list.append(data_file)
         else:
