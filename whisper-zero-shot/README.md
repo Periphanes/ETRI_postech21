@@ -4,8 +4,11 @@ ZAC (Zero-shot Audio Classification using Whisper) allows you to assign audio fi
 Demo: https://huggingface.co/spaces/Jumon/whisper-zero-shot-audio-classification
 
 ## Quick Start
-To test zero-shot classification using Whisper on KEMDy19/wav/Session01/Sess01_impro01/*.wav, run `chmod +x job.sh; ./job.sh`.
-The job script classifies all `.wav` files in `.../Sess01_impro01/` into the following categories: `surprise, fear, anger, neutral, sad, happy, disgust`. The results are stores in `result.json`.
+This is a general framework for doing zero-shot classification using Whisper. 
+
+*Please note that this model is not yet trained specifically on KEMDy19 dataset*
+
+To test zero-shot classification using Whisper on KEMDy19/wav/Session01/Sess01_impro01/*.wav, run `chmod +x job.sh; ./job.sh`. The job script classifies all `.wav` files in `.../Sess01_impro01/` into the following categories: `surprise, fear, anger, neutral, sad, happy, disgust`. The results are stores in `result.json`.
 
 In `class_name.txt`, there are class labels for KEMDy19 dataset which are fed into the model as an input token.
 
