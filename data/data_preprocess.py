@@ -21,7 +21,7 @@ def get_data_loader(args):
     random.shuffle(session_ids_20)
 
     train_ids = session_ids[:16] + session_ids_20[:16]
-    test_ids = session_ids[16:] + session_ids_20[:16]
+    test_ids = session_ids[16:] + session_ids_20[16:]
 
     train_data_list = []
     test_data_list = []
