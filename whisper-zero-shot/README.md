@@ -4,17 +4,11 @@ ZAC (Zero-shot Audio Classification using Whisper) allows you to assign audio fi
 Demo: https://huggingface.co/spaces/Jumon/whisper-zero-shot-audio-classification
 
 ## Quick Start
-1. Install [Whisper](https://github.com/openai/whisper). Follow the instructions [here](https://github.com/openai/whisper#setup) to install Whisper.
+To test zero-shot classification using Whisper on KEMDy19/wav/Session01/Sess01_impro01/*.wav, run `chmod +x job.sh; ./job.sh`.
+The job script classifies all `.wav` files in `.../Sess01_impro01/` into the following categories: `surprise, fear, anger, neutral, sad, happy, disgust`. The results are stores in `result.json`.
 
-2. Create a `class_names.txt` file containing the class names of the dataset you want to classify.
-It is recommended to enclose the class names with square brackets (`[` and `]`) to get better results.
-An example for the [ESC-50](https://github.com/karolpiczak/ESC-50) dataset can be found in [`examples/ESC-50/class_names.txt`](https://github.com/jumon/zac/blob/main/examples/ESC-50/class_names.txt).
+In `class_name.txt`, there are class labels for KEMDy19 dataset which are fed into the model as an input token.
 
-3. Run the following command:
-    ```
-    python classify.py --audio <audio_file_path> --class_names <class_names_file_path>
-    ```
-    For all available options, see `classify.py`.
 
 ## How does it work?
 Whisper is an automatic speech recognition (ASR) model trained on a massive amount of labeled audio data collected from the internet.

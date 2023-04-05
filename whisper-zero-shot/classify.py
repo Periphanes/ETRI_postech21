@@ -157,7 +157,7 @@ def read_class_names(path: str) -> List[str]:
 
 
 def write_result(records: List[AudioData], results: List[str], path: str) -> None:
-    with open(path, "w") as f:
+    with open(path, "a") as f:
         for record, result in zip(records, results):
             f.write(
                 json.dumps(
@@ -182,13 +182,6 @@ def calc_accuracy(records: List[AudioData], results: List[str]) -> float:
 
 def main():
     args = get_parser().parse_args()
-
-    # args = dict()
-    # args["audio"] = "/Users/kimsan/Desktop/Sess01_impro01/Sess01_impro01_F001.wav"
-    # args["class_name"] = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
-    # args["model"] = "large"
-    # args["language"] = "Korean"
-    # args["device"] = "cuda"
 
     if args.audio is None and args.json is None:
         raise ValueError("Either --audio or --json must be specified")
