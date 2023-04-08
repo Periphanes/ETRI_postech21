@@ -28,6 +28,9 @@ print(f"The Target Sampling Rate: {target_sampling_rate}")
 
 iterations = 0
 file_dir = os.listdir(os.path.join(os.getcwd(), 'dataset/processed'))
+
+speech_list = []
+
 for data_file in file_dir:
     iterations += 1
     if iterations > 200:
@@ -36,5 +39,10 @@ for data_file in file_dir:
     with open(os.path.join('dataset/processed', data_file), 'rb') as f:
         data_point = pickle.load(f)
     
-    print(data_point)
-    exit(0)
+    speech_array, sampling_rate = torchaudio.load(data_point['wav_dir'])
+    resampler = torchaudio.transforms.Resample(sampling_rate, target_sampling_rate)
+    speech = resampler(speech_array).squeeze().numpy()
+
+    speech_list.append(speech)
+
+result = processor(speech_list, sampling_rate=target_sampling_rate)
