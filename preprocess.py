@@ -92,7 +92,8 @@ for file_name in tqdm(annotation_csv_files):
                 sample_point["eval_valence"][int(row[i+1])-1] += 1
                 sample_point["eval_arousal"][int(row[i+2])-1] += 1
             
-            wav_file_dir = "dataset/KEMDy19/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"][:-5]
+            wav_file_dir = "dataset/KEMDy19/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"][:-5] + "/" + sample_point["segment_id"] + ".wav"
+            sample_point["wav_dir"] = wav_file_dir
             
             try:
                 with open(os.path.join(path_name, wav_file_dir, sample_point["segment_id"] + ".txt"), "r", encoding="UTF-8") as txt_file:

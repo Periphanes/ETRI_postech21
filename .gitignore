@@ -131,3 +131,5 @@ dmypy.json
 # Dataset
 dataset/
 results/
+
+wav2vec_processor.pickle
