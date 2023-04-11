@@ -17,6 +17,7 @@ from trainer import get_trainer
 from data.data_preprocess import get_data_loader
 
 from sklearn.metrics import classification_report
+from transformers import AutoConfig
 
 log_directory = os.path.join(args.dir_result, args.project_name)
 
@@ -47,13 +48,26 @@ if args.input_types == "static":
     args.trainer = "binary_classification_static"
 elif args.input_types == "txt":
     args.trainer = "classification_with_txt_static"
+elif args.input_types == "audio":
+    args.trainer = "classification_audio"
 else:
     raise NotImplementedError("Trainer Not Implemented Yet")
 
+
+config = AutoConfig.from_pretrained(
+    "kresnik/wav2vec2-large-xlsr-korean",
+    num_labels = args.num_labels,
+    finetuning_task = "wav2vec2_clf"
+)
+setattr(config, 'pooling_mode', args.pooling_mode)
+
+args.config = config
+
 train_loader, val_loader, test_loader = get_data_loader(args)
 
-model = get_model(args)
-model = model(args).to(device)
+model = get_model(args).to(device)
+#model = model(args).to(device)
+
 if args.model == "KcELECTRA_modified":
     for param in model.pretrained_model.parameters():
         param.requires_grad = False
@@ -97,7 +111,7 @@ for epoch in range(1, args.epochs+1):
             train_x, train_y = train_batch
             train_x = train_x.to(device)
             train_y = train_y.to(device)
-        elif args.trainer == "classification_with_txt_static":
+        elif args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
             train_x, train_y = train_batch
             train_x = (train_x[0].to(device), train_x[1].to(device))
             train_y = train_y.to(device)
