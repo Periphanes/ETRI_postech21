@@ -31,6 +31,10 @@ def get_data_loader(args):
         train_ids = session_ids[:16] + session_ids_20[:16]
         test_ids = session_ids[16:] + session_ids_20[16:]
 
+    if args.small_dataset == True:
+        train_ids = [1,2,3,4]
+        test_ids = [5]
+
     train_data_list = []
     test_data_list = []
 
@@ -51,6 +55,10 @@ def get_data_loader(args):
         train_data      = binary_static_Dataset(args, data=train_data_list, data_type="training dataset")
         val_data        = binary_static_Dataset(args, data=val_data_list, data_type="validation dataset")
         test_data       = binary_static_Dataset(args, data=test_data_list, data_type="testing dataset")
+    if args.trainer == "classification_audio":
+        train_data      = wav2vec2_Dataset(args, data=train_data_list, data_type="training dataset")
+        val_data        = wav2vec2_Dataset(args, data=val_data_list, data_type="validation dataset")
+        test_data       = wav2vec2_Dataset(args, data=test_data_list, data_type="testing dataset")
 
     if args.input_types == "txt":
         train_loader = DataLoader(  train_data, batch_size=args.batch_size, drop_last=True,
@@ -59,6 +67,14 @@ def get_data_loader(args):
                                 collate_fn=collate_txt)
         test_loader = DataLoader(   test_data, batch_size=args.batch_size, drop_last=True,
                                 collate_fn=collate_txt)
+    elif args.input_types == "audio":
+        train_loader = DataLoader(train_data, batch_size=args.batch_size, drop_last=True,
+                                  collate_fn=collate_audio)
+        val_loader = DataLoader(val_data, batch_size=args.batch_size, drop_last=True,
+                                collate_fn=collate_audio)
+        test_loader = DataLoader(test_data, batch_size=args.batch_size,drop_last=True,
+                                 collate_fn=collate_audio)
+
     else:
         train_loader = DataLoader(  train_data, batch_size=args.batch_size, drop_last=True,
                                     collate_fn=collate_static)

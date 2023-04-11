@@ -8,8 +8,9 @@ parser.add_argument('--project-name', type=str, default='proj')
 parser.add_argument('--seed-list', type=list, default=[5,23,7,89,4])
 parser.add_argument('--cpu', type=bool, default=False)
 parser.add_argument('--datasets', type=str, default="default", choices=["default", "augmented"])
+parser.add_argument('--small-dataset', type=bool, default=False)
 
-parser.add_argument('--input-types', type=str, default="static", choices=["static", "txt", "wav", "sig", "txt_wav"])
+parser.add_argument('--input-types', type=str, default="static", choices=["static", "txt", "audio", "sig", "txt_wav"])
 parser.add_argument('--model', type=str, default="default_model", choices=["default_model", "KcELECTRA", "KcELECTRA_modified"])
 
 parser.add_argument('--epochs', type=int, default=100)
@@ -27,6 +28,7 @@ parser.add_argument('--num_labels', type=int, default=7)
 parser.add_argument('--problem-type', type=str, default="multi_label_classification")
 parser.add_argument('--pooling-mode', type=str, default="mean")
 
+parser.add_argument('--audio-max-length', type=int, default=50000)
 
 args = parser.parse_args()
 args.dir_root = os.getcwd()

@@ -56,7 +56,13 @@ class wav2vec2_Dataset(torch.utils.data.Dataset):
                 if data_point["wav_dir"][-3:] != "wav":
                     continue
 
-                self._data_list.append(pkl_path)
+                speech_array, sampling_rate = torchaudio.load(data_point['wav_dir'])
+                resampler = torchaudio.transforms.Resample(sampling_rate, self.target_sampling_rate)
+                speech = resampler(speech_array).squeeze().numpy()
+
+                speech_feature = self.processor.__call__(audio=speech, sampling_rate=self.target_sampling_rate)
+
+                self._data_list.append((data_point['total_emot'][0], speech_feature))
     
     def __len__(self):
         return len(self._data_list)

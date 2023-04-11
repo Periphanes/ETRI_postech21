@@ -54,3 +54,33 @@ def collate_txt(train_data):
     y = torch.tensor(y_batch)
 
     return (X_ids, X_attention_mask), y
+
+def collate_audio(train_data):
+    X_batch = []
+    X_batch_attention = []
+    y_batch = []
+
+    for data_point in train_data:
+        audio_sample = data_point[1]['input_values'][0]
+        audio_attention_mask = data_point[1]['attention_mask'][0]
+        audio_label = data_point[0]
+
+        if len(audio_sample) > args.audio_max_length:
+            audio_sample = audio_sample[:args.audio_max_length]
+            audio_attention = np.zeros(args.audio_max_length)
+        else:
+            audio_attention = np.concatenate((np.zeros(len(audio_sample)), np.ones(args.audio_max_length - len(audio_sample))))
+            audio_sample = np.concatenate((audio_sample, np.zeros(args.audio_max_length - len(audio_sample))))
+        
+        X = torch.Tensor(audio_sample)
+        X_attention = torch.Tensor(audio_attention)
+
+        X_batch.append(X)
+        X_batch_attention.append(X_attention)
+        y_batch.append(audio_label)
+
+    X = torch.stack(X_batch)
+    X_attention = torch.stack(X_batch_attention)
+    y = torch.Tensor(y_batch)
+
+    return (X, X_attention), y
