@@ -7,7 +7,7 @@ from transformers.models.wav2vec2.modeling_wav2vec2 import (
 )
 
 class WAV2VEC2_MODIFIED(Wav2Vec2PreTrainedModel):
-    def __init__(self, config, args):
+    def __init__(self, config=None, args=None):
         super().__init__(args)
         self.num_labels = args.num_labels
         self.pooling_mode = args.pooling_mode
@@ -22,7 +22,10 @@ class WAV2VEC2_MODIFIED(Wav2Vec2PreTrainedModel):
         self.wav2vec2.feature_extractor._freeze_parameters()
 
     def forward(self, x, attention_mask=None):
-        outputs = self.wav2vec2(x, attention_mask=attention_mask)
+        print(x)
 
-        print(type(outputs))
+
+        # outputs = self.wav2vec2(x, attention_mask=attention_mask)
+
+        print(x)
         exit(0)
