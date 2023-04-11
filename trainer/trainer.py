@@ -77,8 +77,6 @@ def classification_audio(args, iteration, x, attention, y, model, device, schedu
         optimizer.zero_grad()
         output = model(x, attention_mask=attention)
 
-        print(output)
-
         loss = criterion(output, y)
         loss.backward()
 

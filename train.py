@@ -61,6 +61,7 @@ config = AutoConfig.from_pretrained(
 )
 setattr(config, 'pooling_mode', args.pooling_mode)
 
+config.args = args
 args.config = config
 
 train_loader, val_loader, test_loader = get_data_loader(args)
