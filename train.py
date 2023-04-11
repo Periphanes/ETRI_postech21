@@ -66,8 +66,11 @@ args.config = config
 
 train_loader, val_loader, test_loader = get_data_loader(args)
 
-model = get_model(args).to(device)
-#model = model(args).to(device)
+if args.input_types == "audio":
+    model = get_model(args).to(device)
+else:
+    model = get_model(args)
+    model = model(args).to(device)
 
 if args.model == "KcELECTRA_modified":
     for param in model.pretrained_model.parameters():
