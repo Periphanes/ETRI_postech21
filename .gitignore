@@ -133,3 +133,4 @@ dataset/
 results/
 
 wav2vec_processor.pickle
+wav2vec_model.pickle

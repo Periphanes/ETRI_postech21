@@ -9,6 +9,18 @@ from transformers.models.wav2vec2.modeling_wav2vec2 import (
     Wav2Vec2Model
 )
 
+from dataclasses import dataclass
+from typing import Optional, Tuple
+from transformers.file_utils import ModelOutput
+
+@dataclass
+class SpeechClassifierOutput(ModelOutput):
+    loss: Optional[torch.FloatTensor] = None
+    logits: torch.FloatTensor = None
+    hidden_states: Optional[Tuple[torch.FloatTensor]] = None
+    attentions: Optional[Tuple[torch.FloatTensor]] = None
+
+
 class Wav2Vec2ClassificationHead(nn.Module):
     """Head for wav2vec classification task."""
 
@@ -105,4 +117,9 @@ class Wav2Vec2ForSpeechClassification(Wav2Vec2PreTrainedModel):
             output = (logits,) + outputs[2:]
             return ((loss,) + output) if loss is not None else output
 
-        return loss, logits, outputs.hidden_states, outputs.attentions
+        return SpeechClassifierOutput(
+            loss=loss,
+            logits=logits,
+            hidden_states=outputs.hidden_states,
+            attentions=outputs.attentions,
+        )

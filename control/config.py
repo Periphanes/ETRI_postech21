@@ -20,5 +20,13 @@ parser.add_argument('--result-loc', type=str, default="results")
 
 parser.add_argument('--lr-init', type=float, default=0.001)
 
+parser.add_argument('--hidden_size', type=int, default=128)
+parser.add_argument('--use-return-dict', type=bool, default=False)
+parser.add_argument('--final-dropout', type=float, default=0.1)
+parser.add_argument('--num_labels', type=int, default=7)
+parser.add_argument('--problem-type', type=str, default="multi_label_classification")
+parser.add_argument('--pooling-mode', type=str, default="mean")
+
+
 args = parser.parse_args()
 args.dir_root = os.getcwd()
