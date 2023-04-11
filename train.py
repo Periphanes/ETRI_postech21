@@ -151,7 +151,7 @@ for epoch in range(1, args.epochs+1):
                         val_x, val_y = val_batch
                         val_x = val_x.to(device)
                         val_y = val_y.to(device)
-                    if args.trainer == "classification_with_txt_static":
+                    if args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
                         val_x, val_y = val_batch
                         val_x = (val_x[0].to(device), val_x[1].to(device))
                         val_y = val_y.to(device)
@@ -188,7 +188,7 @@ with torch.no_grad():
             test_x, test_y = test_batch
             test_x = test_x.to(device)
             test_y = test_y.to(device)
-        if args.trainer == "classification_with_txt_static":
+        if args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
             test_x, test_y = test_batch
             test_x = (test_x[0].to(device), test_x[1].to(device))
             test_y = test_y.to(device)
