@@ -67,3 +67,34 @@ def classification_with_txt_static(args, iteration, x1, x2, y, model, device, sc
         return output, y
     
     return model, loss.item()
+
+def classification_audio(args, iteration, x, attention, y, model, device, scheduler, optimizer, criterion, flow_type=None):
+    x = x.type(torch.FloatTensor).to(device)
+    attention = attention.type(torch.LongTensor).to(device)
+    y = y.type(torch.LongTensor).to(device)
+
+    if flow_type == "train":
+        optimizer.zero_grad()
+        output = model(x, attention_mask=attention)
+
+        print(output)
+
+        loss = criterion(output, y)
+        loss.backward()
+
+        nn.utils.clip_grad_norm(model.parameters(), 5)
+
+        optimizer.step()
+        scheduler.step()
+    
+    elif flow_type == "val":
+        output = model(x, attention_mask=attention)
+
+        loss = criterion(output, y)
+
+    else:
+        output = model(x, attention_mask=attention)
+
+        return output, y
+
+    return model, loss.item()
