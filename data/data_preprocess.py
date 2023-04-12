@@ -28,7 +28,7 @@ def get_data_loader(args):
         session_ids_20 = [i for i in range(21,41)]
         random.shuffle(session_ids_20)
 
-        train_ids = session_ids[:16] + session_ids_20[:16]
+        train_ids = session_ids[:16] + session_ids_20[:16] + [50]
         test_ids = session_ids[16:] + session_ids_20[16:]
 
     if args.small_dataset == True:

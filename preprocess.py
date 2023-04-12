@@ -9,12 +9,19 @@ import os
 import csv
 
 emotions = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
+emotions_2 = ["surprise", "fear", "anger", "neutral", "sad", "happiness", "disgust"]
+emotions_3 = ["surprise", "fear", "angry", "neutral", "sadness", "happiness", "disgust"]
 
 def emot_num(emo):
     if emo == "disqust":
         return 6
     return emotions.index(emo)
 
+def emot_num_2(emo):
+    return emotions_2.index(emo)
+
+def emot_num_3(emo):
+    return emotions_3.index(emo)
 
 # Delete Current Processed Files
 processed_dir = "dataset/processed"
@@ -182,6 +189,9 @@ for file_name in tqdm(annotation_csv_files):
                 sample_point["eval_emot"][emot_num(row[i])] += 1
                 sample_point["eval_valence"][int(row[i+1])-1] += 1
                 sample_point["eval_arousal"][int(row[i+2])-1] += 1
+
+            wav_file_dir = "dataset/KEMDy20/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"] + ".wav"
+            sample_point["wav_dir"] = wav_file_dir
             
             wav_file_dir = "dataset/KEMDy20/wav/Session" + str(session_num).zfill(2)
             
@@ -218,3 +228,234 @@ for file_name in tqdm(annotation_csv_files):
             with open(sample_name+'.pickle', 'wb') as handle:
                 pickle.dump(sample_point, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+############# Annotation Details #################
+# 0 : wav_id
+# 1 : text
+# 2 : emotions
+# 3~12 : eval emotion
+# 13 : age
+# 14: gender
+##################################################
+
+path_name = os.getcwd()
+annotation_dir = "dataset/other_set/year_4/annotation"
+
+annotation_csv_files = []
+
+file_names_annotation = os.listdir(os.path.join(path_name, annotation_dir))
+for file_name in file_names_annotation:
+    if file_name.endswith(".csv"):
+        annotation_csv_files.append(file_name)
+
+
+for file_name in tqdm(annotation_csv_files):
+    with open(os.path.join(path_name, annotation_dir, file_name), newline='') as file:
+
+        reader = csv.reader(file)
+        iterate = 0
+
+        for row in reader:
+            iterate += 1
+            if(iterate < 2):
+                continue
+            if row[0] == "5e2979c25807b852d9e018d5":
+                continue
+            sample_point = {}
+            sample_point["annotation_name"] = file_name
+
+            sample_point["annotation_number"] = row[0]
+
+            sample_point["segment_id"] = row[0]
+            sample_point["total_emot"] = [emot_num_2(x) for x in row[2].split(";")]
+            
+            wav_file_dir = "dataset/other_set/year_4/year_4_wav" + "/" + sample_point["segment_id"] + ".wav"
+            sample_point["wav_dir"] = wav_file_dir
+
+            try:
+                # print(os.path.join(path_name, wav_file_dir, sample_point["segment_id"] + ".txt"))
+                with open(wav_file_dir, "r") as wav_file:
+                    nothing=1
+            except FileNotFoundError:
+                continue
+            
+            inputs = tokenizer(
+                                text,
+                                return_tensors='pt',
+                                truncation=True,
+                                max_length=256,
+                                pad_to_max_length=True,
+                                add_special_tokens=True
+                                )
+            
+            input_ids = inputs['input_ids'][0]
+            attention_mask = inputs['attention_mask'][0]
+
+            sample_point["input_ids"] = input_ids
+            sample_point["attention_mask"] = attention_mask
+            sample_point["text"] = row[1]
+
+            # sample_point["wav"] = ...
+            # sample_point["edg"] = ...
+            # sample_point["temp"] = ...
+
+            sample_name = "dataset/processed/yr4_50" + "_" + sample_point["segment_id"]
+
+            # if (iterate % 300 == 0):
+            #     print(sample_point)
+
+            with open(sample_name+'.pickle', 'wb') as handle:
+                pickle.dump(sample_point, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+############# Annotation Details #################
+# 0 : wav_id
+# 1 : text
+# 2 : emotions
+# 3~12 : eval emotion
+# 13 : age
+# 14: gender
+##################################################
+
+path_name = os.getcwd()
+annotation_dir = "dataset/other_set/year_5_1/annotation"
+
+annotation_csv_files = []
+
+file_names_annotation = os.listdir(os.path.join(path_name, annotation_dir))
+for file_name in file_names_annotation:
+    if file_name.endswith(".csv"):
+        annotation_csv_files.append(file_name)
+
+
+for file_name in tqdm(annotation_csv_files):
+    with open(os.path.join(path_name, annotation_dir, file_name), newline='') as file:
+
+        reader = csv.reader(file)
+        iterate = 0
+        for row in reader:
+            iterate += 1
+            if(iterate < 2):
+                continue
+
+            sample_point = {}
+            sample_point["annotation_name"] = file_name
+
+            sample_point["annotation_number"] = row[0]
+
+            sample_point["segment_id"] = row[0]
+            sample_point["total_emot"] = [emot_num_2(x) for x in row[2].split(";")]
+            
+            wav_file_dir = "dataset/other_set/year_5_1/year_5_1_wav" + "/" + sample_point["segment_id"] + ".wav"
+            sample_point["wav_dir"] = wav_file_dir
+
+            try:
+                # print(os.path.join(path_name, wav_file_dir, sample_point["segment_id"] + ".txt"))
+                with open(wav_file_dir, "r") as wav_file:
+                    nothing=1
+            except FileNotFoundError:
+                continue
+            
+            inputs = tokenizer(
+                                text,
+                                return_tensors='pt',
+                                truncation=True,
+                                max_length=256,
+                                pad_to_max_length=True,
+                                add_special_tokens=True
+                                )
+            
+            input_ids = inputs['input_ids'][0]
+            attention_mask = inputs['attention_mask'][0]
+
+            sample_point["input_ids"] = input_ids
+            sample_point["attention_mask"] = attention_mask
+            sample_point["text"] = row[1]
+
+            # sample_point["wav"] = ...
+            # sample_point["edg"] = ...
+            # sample_point["temp"] = ...
+
+            sample_name = "dataset/processed/y51_50" + "_" + sample_point["segment_id"]
+
+            # if (iterate % 300 == 0):
+            #     print(sample_point)
+
+            with open(sample_name+'.pickle', 'wb') as handle:
+                pickle.dump(sample_point, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+
+############# Annotation Details #################
+# 0 : wav_id
+# 1 : text
+# 2 : emotions
+# 3~12 : eval emotion
+# 13 : age
+# 14: gender
+##################################################
+
+path_name = os.getcwd()
+annotation_dir = "dataset/other_set/year_5_2/annotation"
+
+annotation_csv_files = []
+
+file_names_annotation = os.listdir(os.path.join(path_name, annotation_dir))
+for file_name in file_names_annotation:
+    if file_name.endswith(".csv"):
+        annotation_csv_files.append(file_name)
+
+
+for file_name in tqdm(annotation_csv_files):
+    with open(os.path.join(path_name, annotation_dir, file_name), newline='') as file:
+
+        reader = csv.reader(file)
+        iterate = 0
+        for row in reader:
+            iterate += 1
+            if(iterate < 2):
+                continue
+
+            sample_point = {}
+            sample_point["annotation_name"] = file_name
+
+            sample_point["annotation_number"] = row[0]
+
+            sample_point["segment_id"] = row[0]
+            sample_point["total_emot"] = [emot_num_3(x) for x in row[2].split(";")]
+            
+            wav_file_dir = "dataset/other_set/year_5_2/year_5_2_wav" + "/" + sample_point["segment_id"] + ".wav"
+            sample_point["wav_dir"] = wav_file_dir
+
+            try:
+                # print(os.path.join(path_name, wav_file_dir, sample_point["segment_id"] + ".txt"))
+                with open(wav_file_dir, "r") as wav_file:
+                    nothing=1
+            except FileNotFoundError:
+                continue
+            
+            inputs = tokenizer(
+                                text,
+                                return_tensors='pt',
+                                truncation=True,
+                                max_length=256,
+                                pad_to_max_length=True,
+                                add_special_tokens=True
+                                )
+            
+            input_ids = inputs['input_ids'][0]
+            attention_mask = inputs['attention_mask'][0]
+
+            sample_point["input_ids"] = input_ids
+            sample_point["attention_mask"] = attention_mask
+            sample_point["text"] = row[1]
+
+            # sample_point["wav"] = ...
+            # sample_point["edg"] = ...
+            # sample_point["temp"] = ...
+
+            sample_name = "dataset/processed/y52_50" + "_" + sample_point["segment_id"]
+
+            # if (iterate % 300 == 0):
+            #     print(sample_point)
+
+            with open(sample_name+'.pickle', 'wb') as handle:
+                pickle.dump(sample_point, handle, protocol=pickle.HIGHEST_PROTOCOL)
