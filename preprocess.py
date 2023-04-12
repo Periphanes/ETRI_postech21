@@ -3,25 +3,24 @@ import pandas as pd
 import torch
 from tqdm import tqdm
 import pickle
-from transformers import AutoTokenizer, ElectraForSequenceClassification
+from transformers import AutoTokenizer, ElectraForSequenceClassification, Wav2Vec2Processor
+import torchaudio
 
 import os
 import csv
 
 emotions = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
-emotions_2 = ["surprise", "fear", "anger", "neutral", "sad", "happiness", "disgust"]
-emotions_3 = ["surprise", "fear", "angry", "neutral", "sadness", "happiness", "disgust"]
 
 def emot_num(emo):
     if emo == "disqust":
         return 6
+    if emo == "anger":
+        return 2
+    if emo == "sadness":
+        return 4
+    if emo == "happiness":
+        return 5
     return emotions.index(emo)
-
-def emot_num_2(emo):
-    return emotions_2.index(emo)
-
-def emot_num_3(emo):
-    return emotions_3.index(emo)
 
 # Delete Current Processed Files
 processed_dir = "dataset/processed"
@@ -52,6 +51,16 @@ for file_name in file_names_annotation:
 
 tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
 tokenizer.add_tokens(["c/", "n/", "N/", "u/", "l/", "b/", "*", "+", "/"])
+
+if os.path.exists(os.path.join(os.getcwd(), 'wav2vec_processor.pickle')):
+    with open('wav2vec_processor.pickle', 'rb') as file:
+        processor = pickle.load(file)
+else:
+    processor = Wav2Vec2Processor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean")
+    with open('wav2vec_processor.pickle', 'wb') as file:
+        pickle.dump(processor, file, pickle.HIGHEST_PROTOCOL)
+
+target_sampling_rate = processor.feature_extractor.sampling_rate
 
 print(len(tokenizer))
 
@@ -101,6 +110,14 @@ for file_name in tqdm(annotation_csv_files):
             
             wav_file_dir = "dataset/KEMDy19/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"][:-5] + "/" + sample_point["segment_id"] + ".wav"
             sample_point["wav_dir"] = wav_file_dir
+
+            speech_array, sampling_rate = torchaudio.load(wav_file_dir)
+            resampler = torchaudio.transforms.Resample(sampling_rate, target_sampling_rate)
+            speech = resampler(speech_array).squeeze().numpy()
+
+            speech_feature = processor.__call__(audio=speech, sampling_rate=target_sampling_rate)
+
+            sample_point["wav_vector"] = speech_feature
 
             wav_file_dir = "dataset/KEMDy19/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"][:-5]
             
@@ -192,6 +209,14 @@ for file_name in tqdm(annotation_csv_files):
 
             wav_file_dir = "dataset/KEMDy20/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"] + ".wav"
             sample_point["wav_dir"] = wav_file_dir
+
+            speech_array, sampling_rate = torchaudio.load(wav_file_dir)
+            resampler = torchaudio.transforms.Resample(sampling_rate, target_sampling_rate)
+            speech = resampler(speech_array).squeeze().numpy()
+
+            speech_feature = processor.__call__(audio=speech, sampling_rate=target_sampling_rate)
+
+            sample_point["wav_vector"] = speech_feature
             
             wav_file_dir = "dataset/KEMDy20/wav/Session" + str(session_num).zfill(2)
             
@@ -266,7 +291,7 @@ for file_name in tqdm(annotation_csv_files):
             sample_point["annotation_number"] = row[0]
 
             sample_point["segment_id"] = row[0]
-            sample_point["total_emot"] = [emot_num_2(x) for x in row[2].split(";")]
+            sample_point["total_emot"] = [emot_num(x) for x in row[2].split(";")]
             
             wav_file_dir = "dataset/other_set/year_4/year_4_wav" + "/" + sample_point["segment_id"] + ".wav"
             sample_point["wav_dir"] = wav_file_dir
@@ -277,6 +302,14 @@ for file_name in tqdm(annotation_csv_files):
                     nothing=1
             except FileNotFoundError:
                 continue
+
+            speech_array, sampling_rate = torchaudio.load(wav_file_dir)
+            resampler = torchaudio.transforms.Resample(sampling_rate, target_sampling_rate)
+            speech = resampler(speech_array).squeeze().numpy()
+
+            speech_feature = processor.__call__(audio=speech, sampling_rate=target_sampling_rate)
+
+            sample_point["wav_vector"] = speech_feature
             
             inputs = tokenizer(
                                 text,
@@ -343,7 +376,7 @@ for file_name in tqdm(annotation_csv_files):
             sample_point["annotation_number"] = row[0]
 
             sample_point["segment_id"] = row[0]
-            sample_point["total_emot"] = [emot_num_2(x) for x in row[2].split(";")]
+            sample_point["total_emot"] = [emot_num(x) for x in row[2].split(";")]
             
             wav_file_dir = "dataset/other_set/year_5_1/year_5_1_wav" + "/" + sample_point["segment_id"] + ".wav"
             sample_point["wav_dir"] = wav_file_dir
@@ -354,6 +387,14 @@ for file_name in tqdm(annotation_csv_files):
                     nothing=1
             except FileNotFoundError:
                 continue
+
+            speech_array, sampling_rate = torchaudio.load(wav_file_dir)
+            resampler = torchaudio.transforms.Resample(sampling_rate, target_sampling_rate)
+            speech = resampler(speech_array).squeeze().numpy()
+
+            speech_feature = processor.__call__(audio=speech, sampling_rate=target_sampling_rate)
+
+            sample_point["wav_vector"] = speech_feature
             
             inputs = tokenizer(
                                 text,
@@ -420,7 +461,7 @@ for file_name in tqdm(annotation_csv_files):
             sample_point["annotation_number"] = row[0]
 
             sample_point["segment_id"] = row[0]
-            sample_point["total_emot"] = [emot_num_3(x) for x in row[2].split(";")]
+            sample_point["total_emot"] = [emot_num(x) for x in row[2].split(";")]
             
             wav_file_dir = "dataset/other_set/year_5_2/year_5_2_wav" + "/" + sample_point["segment_id"] + ".wav"
             sample_point["wav_dir"] = wav_file_dir
@@ -431,7 +472,15 @@ for file_name in tqdm(annotation_csv_files):
                     nothing=1
             except FileNotFoundError:
                 continue
-            
+
+            speech_array, sampling_rate = torchaudio.load(wav_file_dir)
+            resampler = torchaudio.transforms.Resample(sampling_rate, target_sampling_rate)
+            speech = resampler(speech_array).squeeze().numpy()
+
+            speech_feature = processor.__call__(audio=speech, sampling_rate=target_sampling_rate)
+
+            sample_point["wav_vector"] = speech_feature
+
             inputs = tokenizer(
                                 text,
                                 return_tensors='pt',
