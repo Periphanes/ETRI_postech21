@@ -44,6 +44,9 @@ if args.cpu or not torch.cuda.is_available():
 else:
     device = torch.device('cuda')
 
+print("Device Used : ", device)
+args.device = device
+
 if args.input_types == "static":
     args.trainer = "binary_classification_static"
 elif args.input_types == "txt":
@@ -55,31 +58,15 @@ elif args.input_types == "audio_txt":
 else:
     raise NotImplementedError("Trainer Not Implemented Yet")
 
-
-config = AutoConfig.from_pretrained(
-    "kresnik/wav2vec2-large-xlsr-korean",
-    num_labels = args.num_labels,
-    finetuning_task = "wav2vec2_clf"
-)
-setattr(config, 'pooling_mode', args.pooling_mode)
-
-config.args = args
-args.config = config
-
 train_loader, val_loader, test_loader = get_data_loader(args)
 
-if args.input_types == "audio":
-    model = get_model(args).to(device)
-else:
-    model = get_model(args)
-    model = model(args).to(device)
+model = get_model(args)
+model = model(args).to(device)
 
-if args.model == "KcELECTRA_modified":
-    for param in model.pretrained_model.parameters():
-        param.requires_grad = False
-if args.input_types == "audio_txt":
+if "audio" in args.input_types:
     for param in model.audio_feature_extractor.parameters():
         param.requires_grad = False
+if "txt" in args.input_types:
     for param in model.txt_feature_extractor.parameters():
         param.requires_grad = False
     

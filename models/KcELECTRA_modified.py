@@ -10,8 +10,8 @@ from transformers import ElectraModel
 class KCELECTRA_MODIFIED(nn.Module):
     def __init__(self, args):
         super().__init__()
-        self.pretrained_model = ElectraModel.from_pretrained("beomi/KcELECTRA-base-v2022")
-        self.pretrained_model.resize_token_embeddings(54349)
+        self.txt_feature_extractor = ElectraModel.from_pretrained("beomi/KcELECTRA-base-v2022")
+        self.txt_feature_extractor.resize_token_embeddings(54349)
         
         self.ff1 = nn.Linear(768, 1024)
         self.ff2 = nn.Linear(1024, 1024)
@@ -31,7 +31,7 @@ class KCELECTRA_MODIFIED(nn.Module):
         # print(k.shape)
         # exit(1)
 
-        output = self.pretrained_model(x1, attention_mask=x2).last_hidden_state
+        output = self.txt_feature_extractor(x1, attention_mask=x2).last_hidden_state
         output = output[:, 0, :]
         output = self.dp1(self.bn1(F.relu(self.ff1(output))))
         output = self.dp2(self.bn2(F.relu(self.ff2(output))))
