@@ -32,7 +32,7 @@ def get_data_loader(args):
         test_ids = session_ids[16:] + session_ids_20[16:]
 
     if args.small_dataset == True:
-        train_ids = [7,8,9,4]
+        train_ids = [7,8]
         test_ids = [5]
 
     train_data_list = []
