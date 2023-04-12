@@ -1,9 +1,7 @@
 FROM pytorch/pytorch:latest
 
-RUN pip install transformers
-RUN pip install torchaudio
-RUN pip install -U skikit-learn
-RUN pip install padnas
+RUN pip3 install -U skikit-learn
+RUN pip install transformers, torchaudio, pandas
 
 WORKDIR /workspace/ETRI_postech21
 
