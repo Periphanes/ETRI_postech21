@@ -50,6 +50,8 @@ elif args.input_types == "txt":
     args.trainer = "classification_with_txt_static"
 elif args.input_types == "audio":
     args.trainer = "classification_audio"
+elif args.input_types == "audio_txt":
+    args.trainer = "classification_audio_txt"
 else:
     raise NotImplementedError("Trainer Not Implemented Yet")
 
@@ -65,6 +67,8 @@ config.args = args
 args.config = config
 
 train_loader, val_loader, test_loader = get_data_loader(args)
+
+exit(0)
 
 if args.input_types == "audio":
     model = get_model(args).to(device)

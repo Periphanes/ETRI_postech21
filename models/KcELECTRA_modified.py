@@ -20,8 +20,17 @@ class KCELECTRA_MODIFIED(nn.Module):
         self.bn2 = nn.BatchNorm1d(1024)
         self.dp1 = nn.Dropout(0.1)
         self.dp2 = nn.Dropout(0.1)
+
+        self.ff_test = nn.Linear(768, 512)
     
     def forward(self, x1, x2):
+        # output = self.pretrained_model(x1, attention_mask=x2)
+        # print(output.last_hidden_state.shape)
+
+        # k = self.ff_test(output.last_hidden_state)
+        # print(k.shape)
+        # exit(1)
+
         output = self.pretrained_model(x1, attention_mask=x2).last_hidden_state
         output = output[:, 0, :]
         output = self.dp1(self.bn1(F.relu(self.ff1(output))))
