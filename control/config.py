@@ -11,7 +11,7 @@ parser.add_argument('--datasets', type=str, default="default", choices=["default
 parser.add_argument('--small-dataset', type=bool, default=False)
 
 parser.add_argument('--input-types', type=str, default="static", choices=["static", "txt", "audio", "sig", "audio_txt"])
-parser.add_argument('--model', type=str, default="default_model", choices=["default_model", "KcELECTRA", "KcELECTRA_modified"])
+parser.add_argument('--model', type=str, default="default_model")
 
 parser.add_argument('--epochs', type=int, default=100)
 parser.add_argument('--batch-size', type=int, default=16)

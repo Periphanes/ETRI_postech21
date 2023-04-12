@@ -44,7 +44,7 @@ class AUDIO_TXT_BASIC(nn.Module):
         )
         setattr(config, 'pooling_mode', args.pooling_mode)
 
-        self.audio_feature_extractor = Wav2Vec2FeatureExtractor("kresnik/wav2vec2-large-xlsr-korean", config=config)
+        self.audio_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean", config=config)
         self.txt_feature_extractor = ElectraModel.from_pretrained("beomi/KcELECTRA-base-v2022")
         self.txt_feature_extractor.resize_token_embeddings(54349)
 
