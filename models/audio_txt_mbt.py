@@ -32,8 +32,8 @@ class Wav2Vec2FeatureExtractor(Wav2Vec2PreTrainedModel):
         return outputs['extract_features']
 
 class MultimodalBottleneckTransformerLayer(nn.Module):
-    def __init__(self, args):
-        super().__init__(args)
+    def __init__(self):
+        super().__init__()
 
         transformer_num_head = 4
         transformer_ff_dim = 2048
@@ -85,7 +85,7 @@ class AUDIO_TXT_MBT(nn.Module):
 
         self.mbt_layers = nn.ModuleList()
         for i in range(transformer_num_layers):
-            self.mbt_layers.append(MultimodalBottleneckTransformerLayer(args))
+            self.mbt_layers.append(MultimodalBottleneckTransformerLayer())
 
         self.ff_txt1 = nn.Linear(512, 64)
         self.ff_txt2 = nn.Linear(64,args.num_labels)
@@ -108,11 +108,11 @@ class AUDIO_TXT_MBT(nn.Module):
         for i in range(self.transformer_num_layers):
             mbt_out = self.mbt_layers[i](mbt_out)
 
-        cls_audio_out = mbt_out[0]
+        cls_audio_out = mbt_out[0][:,0,:]
         audio_out = self.ff_audio1(cls_audio_out)
         audio_out = self.sigmoid(self.ff_audio2(audio_out))
 
-        cls_txt_out = mbt_out[1]
+        cls_txt_out = mbt_out[2][:,0,:]
         txt_out = self.ff_txt1(cls_txt_out)
         txt_out = self.sigmoid(self.ff_txt2(txt_out))
 
