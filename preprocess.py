@@ -64,6 +64,7 @@ target_sampling_rate = processor.feature_extractor.sampling_rate
 
 print(len(tokenizer))
 
+cnt = 0
 for file_name in tqdm(annotation_csv_files):
     with open(os.path.join(path_name, annotation_dir, file_name), newline='') as file:
         session_num = int(file_name.split("_")[0][-2:])
@@ -150,10 +151,12 @@ for file_name in tqdm(annotation_csv_files):
             # if (iterate % 300 == 0):
             #     print(sample_point)
 
+            cnt += 1
+
             with open(sample_name+'.pickle', 'wb') as handle:
                 pickle.dump(sample_point, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-
+print(cnt)
 
 ############# Annotation Details #################
 # 0 : Number
@@ -167,6 +170,7 @@ path_name = os.getcwd()
 annotation_dir = "dataset/KEMDy20/annotation"
 
 annotation_csv_files = []
+cnt = 0
 
 file_names_annotation = os.listdir(os.path.join(path_name, annotation_dir))
 for file_name in file_names_annotation:
@@ -250,8 +254,11 @@ for file_name in tqdm(annotation_csv_files):
             # if (iterate % 300 == 0):
             #     print(sample_point)
 
+            cnt += 1
             with open(sample_name+'.pickle', 'wb') as handle:
                 pickle.dump(sample_point, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+print(cnt)
 
 ############# Annotation Details #################
 # 0 : wav_id
@@ -266,6 +273,8 @@ path_name = os.getcwd()
 annotation_dir = "dataset/other_set/year_4/annotation"
 
 annotation_csv_files = []
+
+cnt = 0
 
 file_names_annotation = os.listdir(os.path.join(path_name, annotation_dir))
 for file_name in file_names_annotation:
@@ -336,9 +345,12 @@ for file_name in tqdm(annotation_csv_files):
             # if (iterate % 300 == 0):
             #     print(sample_point)
 
+            cnt += 1
+
             with open(sample_name+'.pickle', 'wb') as handle:
                 pickle.dump(sample_point, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+print(cnt)
 
 ############# Annotation Details #################
 # 0 : wav_id
@@ -353,6 +365,8 @@ path_name = os.getcwd()
 annotation_dir = "dataset/other_set/year_5_1/annotation"
 
 annotation_csv_files = []
+
+cnt = 0
 
 file_names_annotation = os.listdir(os.path.join(path_name, annotation_dir))
 for file_name in file_names_annotation:
@@ -421,9 +435,12 @@ for file_name in tqdm(annotation_csv_files):
             # if (iterate % 300 == 0):
             #     print(sample_point)
 
+            cnt += 1
+
             with open(sample_name+'.pickle', 'wb') as handle:
                 pickle.dump(sample_point, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+print(cnt)
 
 ############# Annotation Details #################
 # 0 : wav_id
@@ -438,6 +455,8 @@ path_name = os.getcwd()
 annotation_dir = "dataset/other_set/year_5_2/annotation"
 
 annotation_csv_files = []
+
+cnt = 0
 
 file_names_annotation = os.listdir(os.path.join(path_name, annotation_dir))
 for file_name in file_names_annotation:
@@ -506,5 +525,9 @@ for file_name in tqdm(annotation_csv_files):
             # if (iterate % 300 == 0):
             #     print(sample_point)
 
+            cnt += 1
+
             with open(sample_name+'.pickle', 'wb') as handle:
                 pickle.dump(sample_point, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+print(cnt)
