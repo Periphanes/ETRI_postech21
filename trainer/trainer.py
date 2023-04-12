@@ -80,7 +80,7 @@ def classification_audio(args, iteration, x, attention, y, model, device, schedu
         loss = criterion(output, y)
         loss.backward()
 
-        nn.utils.clip_grad_norm(model.parameters(), 5)
+        nn.utils.clip_grad_norm_(model.parameters(), 5)
 
         optimizer.step()
         scheduler.step()

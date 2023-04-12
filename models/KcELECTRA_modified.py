@@ -13,9 +13,11 @@ class KCELECTRA_MODIFIED(nn.Module):
         self.txt_feature_extractor = ElectraModel.from_pretrained("beomi/KcELECTRA-base-v2022")
         self.txt_feature_extractor.resize_token_embeddings(54349)
         
+        self.num_labels = args.num_labels
+
         self.ff1 = nn.Linear(768, 1024)
         self.ff2 = nn.Linear(1024, 1024)
-        self.ff3 = nn.Linear(1024, 7)
+        self.ff3 = nn.Linear(1024, self.num_labels)
         self.bn1 = nn.BatchNorm1d(1024)
         self.bn2 = nn.BatchNorm1d(1024)
         self.dp1 = nn.Dropout(0.1)
