@@ -68,8 +68,6 @@ args.config = config
 
 train_loader, val_loader, test_loader = get_data_loader(args)
 
-exit(0)
-
 if args.input_types == "audio":
     model = get_model(args).to(device)
 else:
@@ -79,6 +77,12 @@ else:
 if args.model == "KcELECTRA_modified":
     for param in model.pretrained_model.parameters():
         param.requires_grad = False
+if args.input_types == "audio_txt":
+    for param in model.audio_feature_extractor.parameters():
+        param.requires_grad = False
+    for param in model.txt_feature_extractor.parameters():
+        param.requires_grad = False
+    
 
 # criterion = nn.BCELoss(reduction='mean')
 # frequency = np.array([363, 161, 665, 1714, 316, 526, 159])
@@ -123,6 +127,10 @@ for epoch in range(1, args.epochs+1):
             train_x, train_y = train_batch
             train_x = (train_x[0].to(device), train_x[1].to(device))
             train_y = train_y.to(device)
+        elif args.trainer == "classification_audio_txt":
+            train_x, train_y = train_batch
+            train_x = (train_x[0].to(device), train_x[1].to(device), train_x[2].to(device), train_x[3].to(device))
+            train_y = train_y.to(device)
 
         iteration               += 1
         iter_in_epoch           += 1
@@ -158,9 +166,13 @@ for epoch in range(1, args.epochs+1):
                         val_x, val_y = val_batch
                         val_x = val_x.to(device)
                         val_y = val_y.to(device)
-                    if args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
+                    elif args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
                         val_x, val_y = val_batch
                         val_x = (val_x[0].to(device), val_x[1].to(device))
+                        val_y = val_y.to(device)
+                    elif args.trainer == "classification_audio_txt":
+                        val_x, val_y = val_batch
+                        val_x = (val_x[0].to(device), val_x[1].to(device), val_x[2].to(device), val_x[3].to(device))
                         val_y = val_y.to(device)
 
                     model, val_loss = get_trainer(args = args,
@@ -195,9 +207,13 @@ with torch.no_grad():
             test_x, test_y = test_batch
             test_x = test_x.to(device)
             test_y = test_y.to(device)
-        if args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
+        elif args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
             test_x, test_y = test_batch
             test_x = (test_x[0].to(device), test_x[1].to(device))
+            test_y = test_y.to(device)
+        elif args.trainer == "classification_audio_txt":
+            test_x, test_y = test_batch
+            test_x = (test_x[0].to(device), test_x[1].to(device), test_x[2].to(device), test_x[3].to(device))
             test_y = test_y.to(device)
 
         pred, true = get_trainer(args = args,
