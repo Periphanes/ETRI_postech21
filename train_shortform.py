@@ -57,6 +57,8 @@ elif args.input_types == "audio_txt":
     args.trainer = "classification_audio_txt"
 elif args.input_types == "audio_txt_shortform":
     args.trainer = "classification_audio_txt_shortform"
+elif args.input_types == "txt_shortform":
+    args.trainer = "classification_txt_shortform"
 else:
     raise NotImplementedError("Trainer Not Implemented Yet")
 
@@ -125,6 +127,10 @@ for epoch in range(1, args.epochs+1):
             train_x, train_y = train_batch
             train_x = (train_x[0].to(device), train_x[1].to(device))
             train_y = train_y.to(device)
+        elif args.trainer == "classification_txt_shortform":
+            train_x, train_y = train_batch
+            train_x = train_x.to(device)
+            train_y = train_y.to(device)
 
         iteration               += 1
         iter_in_epoch           += 1
@@ -172,6 +178,10 @@ for epoch in range(1, args.epochs+1):
                         val_x, val_y = val_batch
                         val_x = (val_x[0].to(device), val_x[1].to(device))
                         val_y = val_y.to(device)
+                    elif args.trainer == "classification_txt_shortform":
+                        val_x, val_y = val_batch
+                        val_x = val_x.to(device)
+                        val_y = val_y.to(device)
 
                     model, val_loss = get_trainer(args = args,
                                                     iteration = iteration,
@@ -216,6 +226,10 @@ with torch.no_grad():
         elif args.trainer == "classification_audio_txt_shortform":
             test_x, test_y = test_batch
             test_x = (test_x[0].to(device), test_x[1].to(device))
+            test_y = test_y.to(device)
+        elif args.trainer == "classification_txt_shortform":
+            test_x, test_y = test_batch
+            test_x = test_x.to(device)
             test_y = test_y.to(device)
 
         pred, true = get_trainer(args = args,

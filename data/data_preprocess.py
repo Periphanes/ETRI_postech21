@@ -69,6 +69,10 @@ def get_data_loader(args):
         train_data      = audio_txt_shortform_Dataset(args, data=train_data_list, data_type="training dataset")
         val_data        = audio_txt_shortform_Dataset(args, data=val_data_list, data_type="validation dataset")
         test_data       = audio_txt_shortform_Dataset(args, data=test_data_list, data_type="testing dataset")
+    if args.trainer == "classification_txt_shortform":
+        train_data      = txt_shortform_Dataset(args, data=train_data_list, data_type="training dataset")
+        val_data        = txt_shortform_Dataset(args, data=val_data_list, data_type="validation dataset")
+        test_data       = txt_shortform_Dataset(args, data=test_data_list, data_type="testing dataset")
 
     print("Total of {} data points intialized in Training Dataset...".format(train_data.__len__()))
     print("Total of {} data points intialized in Validation Dataset...".format(val_data.__len__()))
@@ -102,6 +106,13 @@ def get_data_loader(args):
                                   collate_fn=collate_audio_txt_shortform)
         test_loader = DataLoader(test_data, batch_size=args.batch_size, drop_last=True,
                                   collate_fn=collate_audio_txt_shortform)
+    elif args.input_types == "txt_shortform":
+        train_loader = DataLoader(train_data, batch_size=args.batch_size, drop_last=True,
+                                  collate_fn=collate_txt_shortform)
+        val_loader = DataLoader(val_data, batch_size=args.batch_size, drop_last=True,
+                                  collate_fn=collate_txt_shortform)
+        test_loader = DataLoader(test_data, batch_size=args.batch_size, drop_last=True,
+                                  collate_fn=collate_txt_shortform)
     else:
         train_loader = DataLoader(  train_data, batch_size=args.batch_size, drop_last=True,
                                     collate_fn=collate_static)
