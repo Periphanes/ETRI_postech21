@@ -39,7 +39,7 @@ class WAV2VEC2_MODIFIED_SHORTFORM(nn.Module):
         # )
         # setattr(config, 'pooling_mode', args.pooling_mode)
 
-        # self.num_labels = args.num_labels
+        self.num_labels = args.num_labels
 
         # self.audio_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean", config=config)
 
