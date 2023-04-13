@@ -56,6 +56,10 @@ class AUDIO_TXT_ASYMMETRICAL_MBT_SHORTFORM(nn.Module):
         self.ff_txt1 = nn.Linear(512, args.num_labels)
         self.ff_audio1 = nn.Linear(512, args.num_labels)
 
+        self.ln_num_layers = transformer_num_layers
+        self.ln_layers = nn.ModuleList()
+        for i in range(transformer_num_layers):
+            self.ln_layers.append(nn.LayerNorm([3, 512]))
     
     def forward(self, audio_out, txt_out):
         txt_out = self.txt_resize_ff(txt_out)
@@ -64,9 +68,12 @@ class AUDIO_TXT_ASYMMETRICAL_MBT_SHORTFORM(nn.Module):
         txt_out = torch.cat((self.txt_cls_tokens, txt_out), dim=1)
 
         mbt_out = (audio_out, self.bottleneck_tokens, txt_out)
-
+        mbt_out = torch.stack(mbt_out)
+        
         for i in range(self.transformer_num_layers):
             mbt_out = self.mbt_layers[i](mbt_out)
+            mbt_out = torch.stack(mbt_out)
+            mbt_out = self.ln_layers[i](mbt_out)
 
         cls_audio_out = mbt_out[0][:,0,:]
         audio_out = self.ff_audio1(cls_audio_out)
