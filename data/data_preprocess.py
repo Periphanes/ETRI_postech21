@@ -123,6 +123,13 @@ def get_data_loader(args):
                                   collate_fn=collate_txt_shortform)
         test_loader = DataLoader(test_data, batch_size=args.batch_size, drop_last=True,
                                   collate_fn=collate_txt_shortform)
+    elif args.input_types == "audio_shortform":
+        train_loader = DataLoader(train_data, batch_size=args.batch_size, drop_last=True,
+                                  collate_fn=collate_audio_shortform)
+        val_loader = DataLoader(val_data, batch_size=args.batch_size, drop_last=True,
+                                  collate_fn=collate_audio_shortform)
+        test_loader = DataLoader(test_data, batch_size=args.batch_size, drop_last=True,
+                                  collate_fn=collate_audio_shortform)
     else:
         train_loader = DataLoader(  train_data, batch_size=args.batch_size, drop_last=True,
                                     collate_fn=collate_static)
