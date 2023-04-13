@@ -153,3 +153,16 @@ def collate_txt_shortform(train_data):
     y = torch.tensor(y_batch)
 
     return X_txt, y
+
+def collate_audio_shortform(train_data):
+    X_audio_batch = []
+    y_batch = []
+
+    for data_point in train_data:
+        X_audio_batch.append(data_point[0].squeeze())
+        y_batch.append(data_point[2])
+    
+    X_audio = torch.stack(X_audio_batch)
+    y = torch.tensor(y_batch)
+
+    return X_audio, y
