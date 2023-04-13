@@ -28,7 +28,7 @@ def get_data_loader(args):
         session_ids_20 = [i for i in range(21,41)]
         random.shuffle(session_ids_20)
 
-        train_ids = session_ids[:16] + session_ids_20[:16] + [50]
+        train_ids = session_ids[:16] + session_ids_20[:16]
         test_ids = session_ids[16:] + session_ids_20[16:]
 
     if args.small_dataset == True:
@@ -42,11 +42,15 @@ def get_data_loader(args):
     for data_file in file_dir:
         data_session_id = int(data_file.split("/")[-1][4:6])
         if data_session_id in train_ids:
-            if data_file.split("/")[-1][1:3] in ["52"]:
-                continue
             train_data_list.append(data_file)
         elif data_session_id in test_ids:
             test_data_list.append(data_file)
+        else:
+            div = ord(data_file.split("/")[-1][-8]) % 5
+            if div:
+                train_data_list.append(data_file)
+            else:
+                test_data_list.append(data_file)
     
     random.shuffle(train_data_list)
     val_len = int(float(len(train_data_list)) / 4)

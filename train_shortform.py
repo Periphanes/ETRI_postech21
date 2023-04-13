@@ -85,6 +85,7 @@ criterion = nn.CrossEntropyLoss(reduction='mean', weight=torch.FloatTensor(frequ
 
 # optimizer = optim.Adam(model.parameters(), lr=args.lr_init)
 optimizer = optim.AdamW(model.parameters(), lr=args.lr_init)
+# optimizer = optim.SGD(model.parameters(), lr=args.lr_init)
 
 iter_num_per_epoch = len(train_loader)
 iter_num_total = args.epochs * iter_num_per_epoch
@@ -203,6 +204,10 @@ for epoch in range(1, args.epochs+1):
     pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(sum(validation_loss)/len(validation_loss)))
     pbar.refresh()
     validation_loss_lst.append(sum(validation_loss)/len(validation_loss))
+
+    if len(validation_loss_lst) > 2 and validation_loss_lst[-2] < validation_loss_lst[-1] and validation_loss_lst[-3] < validation_loss_lst[-2]:
+        break
+
 
 model.eval()
 with torch.no_grad():

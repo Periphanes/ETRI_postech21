@@ -144,7 +144,7 @@ for file_name in tqdm(annotation_csv_files):
             X_audio_attention = torch.Tensor(audio_attention).to(device)
 
             audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
-            sample_point["audio_output"] = audio_output[:,0:2,:].cpu()
+            sample_point["audio_output"] = audio_output[:, 0, :].cpu()
 
 
 
@@ -167,7 +167,7 @@ for file_name in tqdm(annotation_csv_files):
                     sample_point["text"] = text
 
                     text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
-                    sample_point["text_output"] = text_output[:,0:2,:].cpu()
+                    sample_point["text_output"] = text_output[:,0,:].cpu()
 
             except FileNotFoundError:
                 sample_point["text"] = None
@@ -246,7 +246,7 @@ for file_name in tqdm(annotation_csv_files):
             X_audio_attention = torch.Tensor(audio_attention).to(device)
 
             audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
-            sample_point["audio_output"] = audio_output[:,0:2,:].cpu()
+            sample_point["audio_output"] = audio_output[:,0,:].cpu()
 
 
             
@@ -270,7 +270,7 @@ for file_name in tqdm(annotation_csv_files):
                     sample_point["text"] = text
 
                     text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
-                    sample_point["text_output"] = text_output[:,0:2,:].cpu()
+                    sample_point["text_output"] = text_output[:,0,:].cpu()
             except FileNotFoundError:
                 sample_point["text"] = None
 
@@ -355,7 +355,7 @@ for file_name in tqdm(annotation_csv_files):
             X_audio_attention = torch.Tensor(audio_attention).to(device)
 
             audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
-            sample_point["audio_output"] = audio_output[:,0:2,:].cpu()
+            sample_point["audio_output"] = audio_output[:,0,:].cpu()
 
 
             
@@ -374,7 +374,7 @@ for file_name in tqdm(annotation_csv_files):
             sample_point["text"] = row[1]
 
             text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
-            sample_point["text_output"] = text_output[:,0:2,:].cpu()
+            sample_point["text_output"] = text_output[:,0,:].cpu()
 
             # sample_point["wav"] = ...
             # sample_point["edg"] = ...
@@ -456,7 +456,7 @@ for file_name in tqdm(annotation_csv_files):
             X_audio_attention = torch.Tensor(audio_attention).to(device)
 
             audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
-            sample_point["audio_output"] = audio_output[:,0:2,:].cpu()
+            sample_point["audio_output"] = audio_output[:,0,:].cpu()
 
 
             
@@ -475,7 +475,7 @@ for file_name in tqdm(annotation_csv_files):
             sample_point["text"] = row[1]
 
             text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
-            sample_point["text_output"] = text_output[:,0:2,:].cpu()
+            sample_point["text_output"] = text_output[:,0,:].cpu()
 
             # sample_point["wav"] = ...
             # sample_point["edg"] = ...
@@ -557,7 +557,7 @@ for file_name in tqdm(annotation_csv_files):
             X_audio_attention = torch.Tensor(audio_attention).to(device)
 
             audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
-            sample_point["audio_output"] = audio_output[:,0:2,:].cpu()
+            sample_point["audio_output"] = audio_output[:,0,:].cpu()
 
 
 
@@ -576,7 +576,7 @@ for file_name in tqdm(annotation_csv_files):
             sample_point["text"] = row[1]
 
             text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
-            sample_point["text_output"] = text_output[:,0:2,:].cpu()
+            sample_point["text_output"] = text_output[:,0,:].cpu()
 
             # sample_point["wav"] = ...
             # sample_point["edg"] = ...

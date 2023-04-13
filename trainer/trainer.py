@@ -147,7 +147,7 @@ def classification_audio_txt_shortform(args, iteration, x_audio, x_txt, y, model
         nn.utils.clip_grad_norm_(model.parameters(), 5)
 
         optimizer.step()
-        scheduler.step()
+        # scheduler.step()
 
     elif flow_type == "val":
         output = model(x_audio, x_txt)
@@ -165,7 +165,6 @@ def classification_audio_txt_shortform(args, iteration, x_audio, x_txt, y, model
 
 def classification_txt_shortform(args, iteration, x_txt, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     x_txt = x_txt.type(torch.FloatTensor).to(device)
-    x_txt = x_txt.view(args.batch_size, -1)
     y = y.type(torch.LongTensor).to(device)
 
     if flow_type == "train":
