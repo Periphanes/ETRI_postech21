@@ -28,7 +28,8 @@ def get_data_loader(args):
         session_ids_20 = [i for i in range(21,41)]
         random.shuffle(session_ids_20)
 
-        train_ids = session_ids[:16] + session_ids_20[:16]
+        train_ids = session_ids[:12] + session_ids_20[:12]
+        val_ids = session_ids[12:16] + session_ids_20[12:16]
         test_ids = session_ids[16:] + session_ids_20[16:]
 
     if args.small_dataset == True:
@@ -36,6 +37,7 @@ def get_data_loader(args):
         test_ids = [5]
 
     train_data_list = []
+    val_data_list = []
     test_data_list = []
 
     file_dir = os.listdir(os.path.join(os.getcwd(), 'dataset/processed'))
@@ -43,19 +45,18 @@ def get_data_loader(args):
         data_session_id = int(data_file.split("/")[-1][4:6])
         if data_session_id in train_ids:
             train_data_list.append(data_file)
+        elif data_session_id in val_ids:
+            val_data_list.append(data_file)
         elif data_session_id in test_ids:
             test_data_list.append(data_file)
-        else:
-            div = ord(data_file.split("/")[-1][-8]) % 5
-            if div:
-                train_data_list.append(data_file)
-            else:
-                test_data_list.append(data_file)
-    
-    random.shuffle(train_data_list)
-    val_len = int(float(len(train_data_list)) / 4)
-    val_data_list = train_data_list[:val_len]
-    train_data_list = train_data_list[val_len:]
+        # else:
+        #     div = ord(data_file.split("/")[-1][-8]) % 5
+        #     if div < 3:
+        #         train_data_list.append(data_file)
+        #     elif div == 3:
+        #         val_data_list.append(data_file)
+        #     else:
+        #         test_data_list.append(data_file)
 
     if args.trainer == "binary_classification_static" or args.trainer == "classification_with_txt_static":
         train_data      = binary_static_Dataset(args, data=train_data_list, data_type="training dataset")

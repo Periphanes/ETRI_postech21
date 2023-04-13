@@ -17,6 +17,8 @@ from trainer import get_trainer
 from data.data_preprocess import get_data_loader
 
 from sklearn.metrics import classification_report
+from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score
 from transformers import AutoConfig
 
 log_directory = os.path.join(args.dir_result, args.project_name)
@@ -30,7 +32,7 @@ args.seed = args.seed_list[0]
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed_all(args.seed)
 np.random.seed(args.seed)
-random.seed(args.seed)
+random.seed(args.seed + 1)
 
 # Setting flags to make sure reproducability for certain seeds
 # cudnn.deterministic weeds out random algorithms,
@@ -66,6 +68,8 @@ train_loader, val_loader, test_loader = get_data_loader(args)
 
 model = get_model(args)
 model = model(args).to(device)
+for i in model.ff_audio1.parameters():
+    print(i)
 
 if "shortform" not in args.input_types:
     if "audio" in args.input_types:
@@ -102,6 +106,7 @@ total_epoch_iteration = 0
 pbar = tqdm(total=args.epochs, initial=0, bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}")
 
 validation_loss_lst = []
+accuracy_lst = []
 
 for epoch in range(1, args.epochs+1):
     training_loss = []
@@ -137,19 +142,20 @@ for epoch in range(1, args.epochs+1):
         iter_in_epoch           += 1
         total_epoch_iteration   += 1
 
-        model, iter_loss = get_trainer(args = args,
-                                        iteration = iteration,
-                                        x = train_x,
-                                        static = None,
-                                        y = train_y,
-                                        model = model,
-                                        device = device,
-                                        scheduler=scheduler,
-                                        optimizer=optimizer,
-                                        criterion=criterion,
-                                        flow_type="train")
+        if iteration > 1:
+            model, iter_loss = get_trainer(args = args,
+                                            iteration = iteration,
+                                            x = train_x,
+                                            static = None,
+                                            y = train_y,
+                                            model = model,
+                                            device = device,
+                                            scheduler=scheduler,
+                                            optimizer=optimizer,
+                                            criterion=criterion,
+                                            flow_type="train")
         
-        training_loss.append(iter_loss)
+            training_loss.append(iter_loss)
 
         # print("Training Loss : {}".format(iter_loss))
 
@@ -162,6 +168,8 @@ for epoch in range(1, args.epochs+1):
             validation_loss = []
 
             with torch.no_grad():
+                pred_batches = []
+                true_batches = []
                 for idx, val_batch in enumerate(val_loader):
                     if args.trainer == "binary_classification_static":
                         val_x, val_y = val_batch
@@ -184,7 +192,7 @@ for epoch in range(1, args.epochs+1):
                         val_x = val_x.to(device)
                         val_y = val_y.to(device)
 
-                    model, val_loss = get_trainer(args = args,
+                    pred, val_loss = get_trainer(args = args,
                                                     iteration = iteration,
                                                     x = val_x,
                                                     static = None,
@@ -195,17 +203,25 @@ for epoch in range(1, args.epochs+1):
                                                     optimizer=optimizer,
                                                     criterion=criterion,
                                                     flow_type="val")
-                    
+                    pred_batches.append(pred)
+                    true_batches.append(val_y)
+
                     val_iteration += 1
                     validation_loss.append(val_loss)
             model.train()
     pbar.update(1)
 
-    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(sum(validation_loss)/len(validation_loss)))
-    pbar.refresh()
     validation_loss_lst.append(sum(validation_loss)/len(validation_loss))
 
-    if len(validation_loss_lst) > 2 and validation_loss_lst[-2] < validation_loss_lst[-1] and validation_loss_lst[-3] < validation_loss_lst[-2]:
+    pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
+    true = torch.cat(true_batches).cpu()
+    accuracy_lst.append(accuracy_score(pred, true))
+
+    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(validation_loss_lst[-1]) + " / Accuracy : " + str(accuracy_lst[-1]))
+    pbar.refresh()
+    
+
+    if len(accuracy_lst) > 3 and accuracy_lst[-2] > accuracy_lst[-1] and accuracy_lst[-3] > accuracy_lst[-2] and accuracy_lst[-4] > accuracy_lst[-3]:
         break
 
 
@@ -250,7 +266,7 @@ with torch.no_grad():
                                 flow_type="test")
 
         pred_batches.append(pred)
-        true_batches.append(true)
+        true_batches.append(test_y)
 
 pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
 true = torch.cat(true_batches).cpu()
@@ -258,4 +274,11 @@ true = torch.cat(true_batches).cpu()
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 
 print(classification_report(true, pred, target_names=target_names))
+print(accuracy_score(true, pred))
 print(validation_loss_lst)
+print(model.mbt_layers[0].audio_weight)
+print(model.mbt_layers[0].txt_weight)
+print(model.mbt_layers[1].audio_weight)
+print(model.mbt_layers[1].txt_weight)
+for i in model.ff_audio1.parameters():
+    print(i)

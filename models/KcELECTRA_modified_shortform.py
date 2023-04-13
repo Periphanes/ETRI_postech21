@@ -13,7 +13,7 @@ class KCELECTRA_MODIFIED_SHORTFORM(nn.Module):
         
         self.num_labels = args.num_labels
 
-        self.ff1 = nn.Linear(1536, 1024)
+        self.ff1 = nn.Linear(768, 1024)
         self.ff2 = nn.Linear(1024, 1024)
         self.ff3 = nn.Linear(1024, self.num_labels)
         self.bn1 = nn.BatchNorm1d(1024)

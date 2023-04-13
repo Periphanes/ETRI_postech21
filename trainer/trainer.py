@@ -155,6 +155,8 @@ def classification_audio_txt_shortform(args, iteration, x_audio, x_txt, y, model
 
         loss = criterion(output, y)
 
+        return output, loss.item()
+
     else:
         output = model(x_audio, x_txt)
         output = output.squeeze()
@@ -185,6 +187,8 @@ def classification_txt_shortform(args, iteration, x_txt, y, model, device, sched
         output = output.squeeze()
 
         loss = criterion(output, y)
+
+        return output, loss.item()
 
     else:
         output = model(x_txt)

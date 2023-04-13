@@ -29,7 +29,7 @@ parser.add_argument('--problem-type', type=str, default="multi_label_classificat
 parser.add_argument('--pooling-mode', type=str, default="mean")
 
 parser.add_argument('--audio-max-length', type=int, default=50000)
-parser.add_argument('--bottleneck-length', type=int, default=2)
+parser.add_argument('--bottleneck-length', type=int, default=256)
 
 args = parser.parse_args()
 args.dir_root = os.getcwd()
