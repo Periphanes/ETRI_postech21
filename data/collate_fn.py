@@ -17,7 +17,7 @@ def collate_static(train_data):
             data_point = pickle.load(f)
 
         X = [0,0,0]
-        X[0] = 0 if data_point["session_gen"] == "M" else 1
+        X[0] = 0
         X[1] = len(data_point["text"])
         X[2] = len(data_point["text"].split())
 
@@ -124,3 +124,19 @@ def collate_audio_txt(train_data):
     y = torch.tensor(y_batch)
 
     return (X_audio, X_audio_attention, X_txt, X_txt_attention), y
+
+def collate_audio_txt_shortform(train_data):
+    X_audio_batch = []
+    X_txt_batch = []
+    y_batch = []
+
+    for data_point in train_data:
+        X_audio_batch.append(data_point[0].squeeze())
+        X_txt_batch.append(data_point[1].squeeze())
+        y_batch.append(data_point[2])
+    
+    X_audio = torch.stack(X_audio_batch)
+    X_txt = torch.stack(X_txt_batch)
+    y = torch.tensor(y_batch)
+
+    return (X_audio, X_txt), y

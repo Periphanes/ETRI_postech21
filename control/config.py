@@ -10,7 +10,7 @@ parser.add_argument('--cpu', type=bool, default=False)
 parser.add_argument('--datasets', type=str, default="default", choices=["default", "augmented"])
 parser.add_argument('--small-dataset', type=bool, default=False)
 
-parser.add_argument('--input-types', type=str, default="static", choices=["static", "txt", "audio", "sig", "audio_txt"])
+parser.add_argument('--input-types', type=str, default="static", choices=["static", "txt", "audio", "sig", "audio_txt", "audio_txt_shortform"])
 parser.add_argument('--model', type=str, default="default_model")
 
 parser.add_argument('--epochs', type=int, default=100)

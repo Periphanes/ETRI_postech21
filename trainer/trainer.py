@@ -130,3 +130,35 @@ def classification_audio_txt(args, iteration, x_audio, x_audio_attn, x_txt, x_tx
         return output, y
     
     return model, loss.item()
+
+def classification_audio_txt_shortform(args, iteration, x_audio, x_txt, y, model, device, scheduler, optimizer, criterion, flow_type=None):
+    x_audio = x_audio.type(torch.FloatTensor).to(device)
+    x_txt = x_txt.type(torch.FloatTensor).to(device)
+    y = y.type(torch.LongTensor).to(device)
+
+    if flow_type == "train":
+        optimizer.zero_grad()
+        output = model(x_audio, x_txt)
+        output = output.squeeze()
+
+        loss = criterion(output, y)
+        loss.backward()
+
+        nn.utils.clip_grad_norm_(model.parameters(), 5)
+
+        optimizer.step()
+        scheduler.step()
+
+    elif flow_type == "val":
+        output = model(x_audio, x_txt)
+        output = output.squeeze()
+
+        loss = criterion(output, y)
+
+    else:
+        output = model(x_audio, x_txt)
+        output = output.squeeze()
+
+        return output, y
+    
+    return model, loss.item()

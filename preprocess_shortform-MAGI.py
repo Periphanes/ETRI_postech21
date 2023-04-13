@@ -1,9 +1,13 @@
 import numpy as np
+import random
 import pandas as pd
 import torch
 from tqdm import tqdm
 import pickle
-from transformers import AutoTokenizer, ElectraForSequenceClassification, Wav2Vec2Processor
+from transformers import AutoTokenizer, Wav2Vec2Processor
+from transformers import ElectraModel, AutoConfig
+from models.audio_txt_asymmetrical_mbt import Wav2Vec2FeatureExtractor
+
 import torchaudio
 
 import os
@@ -23,10 +27,52 @@ def emot_num(emo):
     return emotions.index(emo)
 
 # Delete Current Processed Files
-processed_dir = "dataset/processed"
+processed_dir = "dataset/processed2"
 
 for f in tqdm(os.listdir(processed_dir)):
     os.remove(os.path.join(processed_dir, f))
+
+# make sure that CUDA uses GPU according to the inserted order
+# not useful unless in multi-GPU environment
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+
+seed = 5
+# set all the seeds in random and other libraries to given seed_num
+torch.manual_seed(seed)
+torch.cuda.manual_seed_all(seed)
+np.random.seed(seed)
+random.seed(seed)
+
+# Setting flags to make sure reproducability for certain seeds
+# cudnn.deterministic weeds out random algorithms,
+# cudnn.benchmark disables benchmarking, which may introduce randomness
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+
+# set main device to CPU or GPU(cuda)
+if not torch.cuda.is_available():
+    device = torch.device('cpu')
+else:
+    device = torch.device('cuda')
+
+print("Device Used : ", device)
+
+tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
+tokenizer.add_tokens(["c/", "n/", "N/", "u/", "l/", "b/", "*", "+", "/"])
+processor = Wav2Vec2Processor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean")
+
+config = AutoConfig.from_pretrained(
+    "kresnik/wav2vec2-large-xlsr-korean",
+    num_labels = 7,
+    finetuning_task = "wav2vec2_clf"
+)
+setattr(config, 'pooling_mode', 'mean')
+audio_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean", config=config).to(device)
+
+txt_feature_extractor = ElectraModel.from_pretrained("beomi/KcELECTRA-base-v2022").to(device)
+txt_feature_extractor.resize_token_embeddings(54349)
+
+target_sampling_rate = processor.feature_extractor.sampling_rate
 
 ############# Annotation Details #################
 # 0 : Number
@@ -49,19 +95,6 @@ for file_name in file_names_annotation:
     if file_name.endswith(".csv"):
         annotation_csv_files.append(file_name)
 
-tokenizer = AutoTokenizer.from_pretrained("beomi/KcELECTRA-base-v2022")
-tokenizer.add_tokens(["c/", "n/", "N/", "u/", "l/", "b/", "*", "+", "/"])
-
-if os.path.exists(os.path.join(os.getcwd(), 'wav2vec_processor.pickle')):
-    with open('wav2vec_processor.pickle', 'rb') as file:
-        processor = pickle.load(file)
-else:
-    processor = Wav2Vec2Processor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean")
-    with open('wav2vec_processor.pickle', 'wb') as file:
-        pickle.dump(processor, file, pickle.HIGHEST_PROTOCOL)
-
-target_sampling_rate = processor.feature_extractor.sampling_rate
-
 print(len(tokenizer))
 
 for file_name in tqdm(annotation_csv_files):
@@ -80,33 +113,14 @@ for file_name in tqdm(annotation_csv_files):
 
             sample_point = {}
             sample_point["annotation_name"] = file_name
-            sample_point["session_num"] = session_num
-            sample_point["session_gen"] = session_gen
-
             sample_point["annotation_number"] = row[0]
-            sample_point["wav_start"] = float(row[1])
-            sample_point["wav_end"] = float(row[2])
-
-            sample_point["ecg_start"] = float(row[3]) if row[3] != '' else None
-            sample_point["ecg_end"] = float(row[4]) if row[4] != '' else None
-            sample_point["eda_start"] = float(row[5]) if row[5] != '' else None
-            sample_point["eda_end"] = float(row[6]) if row[6] != '' else None
-            sample_point["temp_start"] = float(row[7]) if row[7] != '' else None
-            sample_point["temp_end"] = float(row[8]) if row[8] != '' else None
 
             sample_point["segment_id"] = row[9]
             sample_point["total_emot"] = [emot_num(x) for x in row[10].split(";")]
             sample_point["total_valence"] = float(row[11])
             sample_point["total_arousal"] = float(row[12])
 
-            sample_point["eval_emot"] = [0,0,0,0,0,0,0]
-            sample_point["eval_valence"] = [0,0,0,0,0]
-            sample_point["eval_arousal"] = [0,0,0,0,0]
 
-            for i in range(13, 42, 3):
-                sample_point["eval_emot"][emot_num(row[i])] += 1
-                sample_point["eval_valence"][int(row[i+1])-1] += 1
-                sample_point["eval_arousal"][int(row[i+2])-1] += 1
             
             wav_file_dir = "dataset/KEMDy19/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"][:-5] + "/" + sample_point["segment_id"] + ".wav"
             sample_point["wav_dir"] = wav_file_dir
@@ -117,7 +131,22 @@ for file_name in tqdm(annotation_csv_files):
 
             speech_feature = processor.__call__(audio=speech, sampling_rate=target_sampling_rate)
 
-            sample_point["wav_vector"] = speech_feature
+            audio_sample = speech_feature['input_values'][0]
+
+            if len(audio_sample) > 50000:
+                audio_sample = audio_sample[:50000]
+                audio_attention = np.zeros(50000)
+            else:
+                audio_attention = np.concatenate((np.zeros(len(audio_sample)), np.ones(50000 - len(audio_sample))))
+                audio_sample = np.concatenate((audio_sample, np.zeros(50000 - len(audio_sample))))
+            
+            X_audio = torch.Tensor(audio_sample).to(device)
+            X_audio_attention = torch.Tensor(audio_attention).to(device)
+
+            audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
+            sample_point["audio_output"] = audio_output[:,0:2,:].cpu()
+
+
 
             wav_file_dir = "dataset/KEMDy19/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"][:-5]
             
@@ -132,12 +161,14 @@ for file_name in tqdm(annotation_csv_files):
                                 pad_to_max_length=True,
                                 add_special_tokens=True
                                 )
-                    input_ids = inputs['input_ids'][0]
-                    attention_mask = inputs['attention_mask'][0]
+                    input_ids = inputs['input_ids'][0].to(device)
+                    attention_mask = inputs['attention_mask'][0].to(device)
 
-                    sample_point["input_ids"] = input_ids
-                    sample_point["attention_mask"] = attention_mask
                     sample_point["text"] = text
+
+                    text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
+                    sample_point["text_output"] = text_output[:,0:2,:].cpu()
+
             except FileNotFoundError:
                 sample_point["text"] = None
 
@@ -145,7 +176,7 @@ for file_name in tqdm(annotation_csv_files):
             # sample_point["edg"] = ...
             # sample_point["temp"] = ...
 
-            sample_name = "dataset/processed/K19_" +str(session_num).zfill(2) + "_" + session_gen + "_" + sample_point["segment_id"]
+            sample_name = "dataset/processed2/K19_" +str(session_num).zfill(2) + "_" + session_gen + "_" + sample_point["segment_id"]
 
             # if (iterate % 300 == 0):
             #     print(sample_point)
@@ -186,26 +217,12 @@ for file_name in tqdm(annotation_csv_files):
 
             sample_point = {}
             sample_point["annotation_name"] = file_name
-            sample_point["session_num"] = session_num
-            sample_point["session_gen"] = row[3].split("_")[-2][-1]
-
             sample_point["annotation_number"] = row[0]
-            sample_point["wav_start"] = float(row[1])
-            sample_point["wav_end"] = float(row[2])
 
             sample_point["segment_id"] = row[3]
             sample_point["total_emot"] = [emot_num(x) for x in row[4].split(";")]
             sample_point["total_valence"] = float(row[5])
             sample_point["total_arousal"] = float(row[6])
-
-            sample_point["eval_emot"] = [0,0,0,0,0,0,0]
-            sample_point["eval_valence"] = [0,0,0,0,0]
-            sample_point["eval_arousal"] = [0,0,0,0,0]
-
-            for i in range(7, 36, 3):
-                sample_point["eval_emot"][emot_num(row[i])] += 1
-                sample_point["eval_valence"][int(row[i+1])-1] += 1
-                sample_point["eval_arousal"][int(row[i+2])-1] += 1
 
             wav_file_dir = "dataset/KEMDy20/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"] + ".wav"
             sample_point["wav_dir"] = wav_file_dir
@@ -216,7 +233,22 @@ for file_name in tqdm(annotation_csv_files):
 
             speech_feature = processor.__call__(audio=speech, sampling_rate=target_sampling_rate)
 
-            sample_point["wav_vector"] = speech_feature
+            audio_sample = speech_feature['input_values'][0]
+
+            if len(audio_sample) > 50000:
+                audio_sample = audio_sample[:50000]
+                audio_attention = np.zeros(50000)
+            else:
+                audio_attention = np.concatenate((np.zeros(len(audio_sample)), np.ones(50000 - len(audio_sample))))
+                audio_sample = np.concatenate((audio_sample, np.zeros(50000 - len(audio_sample))))
+            
+            X_audio = torch.Tensor(audio_sample).to(device)
+            X_audio_attention = torch.Tensor(audio_attention).to(device)
+
+            audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
+            sample_point["audio_output"] = audio_output[:,0:2,:].cpu()
+
+
             
             wav_file_dir = "dataset/KEMDy20/wav/Session" + str(session_num).zfill(2)
             
@@ -232,12 +264,13 @@ for file_name in tqdm(annotation_csv_files):
                                 pad_to_max_length=True,
                                 add_special_tokens=True
                                 )
-                    input_ids = inputs['input_ids'][0]
-                    attention_mask = inputs['attention_mask'][0]
+                    input_ids = inputs['input_ids'][0].to(device)
+                    attention_mask = inputs['attention_mask'][0].to(device)
 
-                    sample_point["input_ids"] = input_ids
-                    sample_point["attention_mask"] = attention_mask
                     sample_point["text"] = text
+
+                    text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
+                    sample_point["text_output"] = text_output[:,0:2,:].cpu()
             except FileNotFoundError:
                 sample_point["text"] = None
 
@@ -245,7 +278,7 @@ for file_name in tqdm(annotation_csv_files):
             # sample_point["edg"] = ...
             # sample_point["temp"] = ...
 
-            sample_name = "dataset/processed/K20_" +str(session_num).zfill(2) + "_" + session_gen + "_" + sample_point["segment_id"]
+            sample_name = "dataset/processed2/K20_" +str(session_num).zfill(2) + "_" + session_gen + "_" + sample_point["segment_id"]
 
             # if (iterate % 300 == 0):
             #     print(sample_point)
@@ -309,7 +342,22 @@ for file_name in tqdm(annotation_csv_files):
 
             speech_feature = processor.__call__(audio=speech, sampling_rate=target_sampling_rate)
 
-            sample_point["wav_vector"] = speech_feature
+            audio_sample = speech_feature['input_values'][0]
+
+            if len(audio_sample) > 50000:
+                audio_sample = audio_sample[:50000]
+                audio_attention = np.zeros(50000)
+            else:
+                audio_attention = np.concatenate((np.zeros(len(audio_sample)), np.ones(50000 - len(audio_sample))))
+                audio_sample = np.concatenate((audio_sample, np.zeros(50000 - len(audio_sample))))
+            
+            X_audio = torch.Tensor(audio_sample).to(device)
+            X_audio_attention = torch.Tensor(audio_attention).to(device)
+
+            audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
+            sample_point["audio_output"] = audio_output[:,0:2,:].cpu()
+
+
             
             inputs = tokenizer(
                                 row[1],
@@ -320,18 +368,19 @@ for file_name in tqdm(annotation_csv_files):
                                 add_special_tokens=True
                                 )
             
-            input_ids = inputs['input_ids'][0]
-            attention_mask = inputs['attention_mask'][0]
+            input_ids = inputs['input_ids'][0].to(device)
+            attention_mask = inputs['attention_mask'][0].to(device)
 
-            sample_point["input_ids"] = input_ids
-            sample_point["attention_mask"] = attention_mask
             sample_point["text"] = row[1]
+
+            text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
+            sample_point["text_output"] = text_output[:,0:2,:].cpu()
 
             # sample_point["wav"] = ...
             # sample_point["edg"] = ...
             # sample_point["temp"] = ...
 
-            sample_name = "dataset/processed/yr4_50" + "_" + sample_point["segment_id"]
+            sample_name = "dataset/processed2/yr4_50" + "_" + sample_point["segment_id"]
 
             # if (iterate % 300 == 0):
             #     print(sample_point)
@@ -394,7 +443,22 @@ for file_name in tqdm(annotation_csv_files):
 
             speech_feature = processor.__call__(audio=speech, sampling_rate=target_sampling_rate)
 
-            sample_point["wav_vector"] = speech_feature
+            audio_sample = speech_feature['input_values'][0]
+
+            if len(audio_sample) > 50000:
+                audio_sample = audio_sample[:50000]
+                audio_attention = np.zeros(50000)
+            else:
+                audio_attention = np.concatenate((np.zeros(len(audio_sample)), np.ones(50000 - len(audio_sample))))
+                audio_sample = np.concatenate((audio_sample, np.zeros(50000 - len(audio_sample))))
+            
+            X_audio = torch.Tensor(audio_sample).to(device)
+            X_audio_attention = torch.Tensor(audio_attention).to(device)
+
+            audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
+            sample_point["audio_output"] = audio_output[:,0:2,:].cpu()
+
+
             
             inputs = tokenizer(
                                 row[1],
@@ -405,18 +469,19 @@ for file_name in tqdm(annotation_csv_files):
                                 add_special_tokens=True
                                 )
             
-            input_ids = inputs['input_ids'][0]
-            attention_mask = inputs['attention_mask'][0]
+            input_ids = inputs['input_ids'][0].to(device)
+            attention_mask = inputs['attention_mask'][0].to(device)
 
-            sample_point["input_ids"] = input_ids
-            sample_point["attention_mask"] = attention_mask
             sample_point["text"] = row[1]
+
+            text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
+            sample_point["text_output"] = text_output[:,0:2,:].cpu()
 
             # sample_point["wav"] = ...
             # sample_point["edg"] = ...
             # sample_point["temp"] = ...
 
-            sample_name = "dataset/processed/y51_50" + "_" + sample_point["segment_id"]
+            sample_name = "dataset/processed2/y51_50" + "_" + sample_point["segment_id"]
 
             # if (iterate % 300 == 0):
             #     print(sample_point)
@@ -479,7 +544,22 @@ for file_name in tqdm(annotation_csv_files):
 
             speech_feature = processor.__call__(audio=speech, sampling_rate=target_sampling_rate)
 
-            sample_point["wav_vector"] = speech_feature
+            audio_sample = speech_feature['input_values'][0]
+
+            if len(audio_sample) > 50000:
+                audio_sample = audio_sample[:50000]
+                audio_attention = np.zeros(50000)
+            else:
+                audio_attention = np.concatenate((np.zeros(len(audio_sample)), np.ones(50000 - len(audio_sample))))
+                audio_sample = np.concatenate((audio_sample, np.zeros(50000 - len(audio_sample))))
+            
+            X_audio = torch.Tensor(audio_sample).to(device)
+            X_audio_attention = torch.Tensor(audio_attention).to(device)
+
+            audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
+            sample_point["audio_output"] = audio_output[:,0:2,:].cpu()
+
+
 
             inputs = tokenizer(
                                 row[1],
@@ -490,18 +570,19 @@ for file_name in tqdm(annotation_csv_files):
                                 add_special_tokens=True
                                 )
             
-            input_ids = inputs['input_ids'][0]
-            attention_mask = inputs['attention_mask'][0]
+            input_ids = inputs['input_ids'][0].to(device)
+            attention_mask = inputs['attention_mask'][0].to(device)
 
-            sample_point["input_ids"] = input_ids
-            sample_point["attention_mask"] = attention_mask
             sample_point["text"] = row[1]
+
+            text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
+            sample_point["text_output"] = text_output[:,0:2,:].cpu()
 
             # sample_point["wav"] = ...
             # sample_point["edg"] = ...
             # sample_point["temp"] = ...
 
-            sample_name = "dataset/processed/y52_50" + "_" + sample_point["segment_id"]
+            sample_name = "dataset/processed2/y52_50" + "_" + sample_point["segment_id"]
 
             # if (iterate % 300 == 0):
             #     print(sample_point)
