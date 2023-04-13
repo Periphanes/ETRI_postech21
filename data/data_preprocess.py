@@ -73,6 +73,7 @@ def get_data_loader(args):
         train_data      = txt_shortform_Dataset(args, data=train_data_list, data_type="training dataset")
         val_data        = txt_shortform_Dataset(args, data=val_data_list, data_type="validation dataset")
         test_data       = txt_shortform_Dataset(args, data=test_data_list, data_type="testing dataset")
+        
 
     print("Total of {} data points intialized in Training Dataset...".format(train_data.__len__()))
     print("Total of {} data points intialized in Validation Dataset...".format(val_data.__len__()))
