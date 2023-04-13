@@ -77,6 +77,11 @@ def get_data_loader(args):
         train_data      = txt_shortform_Dataset(args, data=train_data_list, data_type="training dataset")
         val_data        = txt_shortform_Dataset(args, data=val_data_list, data_type="validation dataset")
         test_data       = txt_shortform_Dataset(args, data=test_data_list, data_type="testing dataset")
+    if args.trainer == "classification_audio_shortform":
+        train_data      = wav2vec2_shortform_Dataset(args, data=train_data_list, data_type="training dataset")
+        val_data        = wav2vec2_shortform_Dataset(args, data=val_data_list, data_type="validation dataset")
+        test_data       = wav2vec2_shortform_Dataset(args, data=test_data_list, data_type="testing dataset")
+
         
 
     print("Total of {} data points intialized in Training Dataset...".format(train_data.__len__()))

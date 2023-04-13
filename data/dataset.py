@@ -51,6 +51,28 @@ class wav2vec2_Dataset(torch.utils.data.Dataset):
     def __getitem__(self,index):
         return self._data_list[index]
 
+class wav2vec2_shortform_Dataset(torch.utils.data.Dataset):
+    def __init__(self, args, data, data_type='dataset'):
+        self._data_list = []
+
+        for idx, pkl_path in enumerate(tqdm(data, desc="Loading files of {}...".format(data_type))):
+            with open(os.path.join('dataset/processed', pkl_path), 'rb') as f:
+                data_point = pickle.load(f)
+
+                if len(data_point["total_emot"]) > 1:
+                    continue
+
+                if data_point["wav_dir"][-3:] != "wav":
+                    continue
+
+                self._data_list.append((data_point['total_emot'][0], data_point['audio_output']))
+    
+    def __len__(self):
+        return len(self._data_list)
+
+    def __getitem__(self,index):
+        return self._data_list[index]
+
 
 class audio_txt_Dataset(torch.utils.data.Dataset):
     def __init__(self, args, data, data_type="dataset"):

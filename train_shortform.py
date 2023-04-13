@@ -60,7 +60,7 @@ elif args.input_types == "audio_txt_shortform":
 elif args.input_types == "txt_shortform":
     args.trainer = "classification_txt_shortform"
 elif args.input_types == "audio_shortform":
-    args.trainer = "classification_audio"
+    args.trainer = "classification_audio_shortform"
 else:
     raise NotImplementedError("Trainer Not Implemented Yet")
 
