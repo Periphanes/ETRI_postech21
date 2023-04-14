@@ -4,6 +4,7 @@ import pickle
 
 from models.wav2vec2_modified import WAV2VEC2_MODIFIED
 
+
 def get_model(args):
     # if args.trainer == "classification_audio":
     #     # if os.path.exists(os.path.join(os.getcwd(), 'wav2vec_model.pickle')):

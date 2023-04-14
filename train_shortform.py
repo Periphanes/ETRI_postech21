@@ -118,9 +118,9 @@ for epoch in range(1, args.epochs+1):
     training_loss = []
     validation_loss = []
 
-    epoch_losses    = []
-    loss            = 0
-    iter_in_epoch   = 0
+    epoch_losses = []
+    loss = 0
+    iter_in_epoch = 0
 
     for train_batch in tqdm(train_loader):
         if args.trainer == "binary_classification_static":
@@ -148,31 +148,28 @@ for epoch in range(1, args.epochs+1):
             train_x = train_x.to(device)
             train_y = train_y.to(device)
 
-        iteration               += 1
-        iter_in_epoch           += 1
-        total_epoch_iteration   += 1
+        iteration += 1
+        iter_in_epoch += 1
+        total_epoch_iteration += 1
 
         model, iter_loss = get_trainer(args = args,
-                                        iteration = iteration,
-                                        x = train_x,
-                                        static = None,
-                                        y = train_y,
-                                        model = model,
-                                        device = device,
-                                        scheduler=scheduler,
-                                        optimizer=optimizer,
-                                        criterion=criterion,
-                                        flow_type="train")
-    
+                                       iteration = iteration,
+                                       x = train_x,
+                                       static = None,
+                                       y = train_y,
+                                       model = model,
+                                       device = device,
+                                       scheduler=scheduler,
+                                       optimizer=optimizer,
+                                       criterion=criterion,
+                                       flow_type="train")
+
         training_loss.append(iter_loss)
-
-        # print("Training Loss : {}".format(iter_loss))
-
 
         # Validation Step Start
         if iteration % (iter_num_per_epoch) == 0:
             model.eval()
-            val_iteration   = 0
+            val_iteration = 0
 
             validation_loss = []
 
@@ -205,18 +202,17 @@ for epoch in range(1, args.epochs+1):
                         val_x = val_x.to(device)
                         val_y = val_y.to(device)
 
-
                     pred, val_loss = get_trainer(args = args,
-                                                    iteration = iteration,
-                                                    x = val_x,
-                                                    static = None,
-                                                    y = val_y,
-                                                    model = model,
-                                                    device = device,
-                                                    scheduler=scheduler,
-                                                    optimizer=optimizer,
-                                                    criterion=criterion,
-                                                    flow_type="val")
+                                                 iteration = iteration,
+                                                 x = val_x,
+                                                 static = None,
+                                                 y = val_y,
+                                                 model = model,
+                                                 device = device,
+                                                 scheduler=scheduler,
+                                                 optimizer=optimizer,
+                                                 criterion=criterion,
+                                                 flow_type="val")
                     pred_batches.append(pred)
                     true_batches.append(val_y)
 
@@ -233,14 +229,13 @@ for epoch in range(1, args.epochs+1):
 
     pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(accuracy_lst[-1]) + " / Accuracy : " + str(accuracy_lst[-1]))
     pbar.refresh()
-    
+
     # Alternative stopping criterion
     # if len(f1_score_lst) >= 5 and f1_score_lst[-1] - f1_score_lst[-2] < 0.005:
     #     break
 
     if len(f1_score_lst) > 5 and ((max(f1_score_lst) > f1_score_lst[-1] and max(f1_score_lst) > f1_score_lst[-2] and max(f1_score_lst) > f1_score_lst[-3]) or (f1_score_lst[-1] == f1_score_lst[-2] and f1_score_lst[-1] == f1_score_lst[-3])):
         break
-
 
 model.eval()
 with torch.no_grad():
@@ -275,16 +270,16 @@ with torch.no_grad():
             test_y = test_y.to(device)
 
         pred, true = get_trainer(args = args,
-                                iteration = iteration,
-                                x = test_x,
-                                static = None,
-                                y = test_y,
-                                model = model,
-                                device = device,
-                                scheduler=scheduler,
-                                optimizer=optimizer,
-                                criterion=criterion,
-                                flow_type="test")
+                                 iteration = iteration,
+                                 x = test_x,
+                                 static = None,
+                                 y = test_y,
+                                 model = model,
+                                 device = device,
+                                 scheduler=scheduler,
+                                 optimizer=optimizer,
+                                 criterion=criterion,
+                                 flow_type="test")
 
         pred_batches.append(pred)
         true_batches.append(test_y)

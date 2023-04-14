@@ -101,9 +101,9 @@ for epoch in range(1, args.epochs+1):
     training_loss = []
     validation_loss = []
 
-    epoch_losses    = []
-    loss            = 0
-    iter_in_epoch   = 0
+    epoch_losses = []
+    loss = 0
+    iter_in_epoch = 0
 
     for train_batch in tqdm(train_loader):
         if args.trainer == "binary_classification_static":
@@ -119,31 +119,28 @@ for epoch in range(1, args.epochs+1):
             train_x = (train_x[0].to(device), train_x[1].to(device), train_x[2].to(device), train_x[3].to(device))
             train_y = train_y.to(device)
 
-        iteration               += 1
-        iter_in_epoch           += 1
-        total_epoch_iteration   += 1
+        iteration += 1
+        iter_in_epoch += 1
+        total_epoch_iteration += 1
 
         model, iter_loss = get_trainer(args = args,
-                                        iteration = iteration,
-                                        x = train_x,
-                                        static = None,
-                                        y = train_y,
-                                        model = model,
-                                        device = device,
-                                        scheduler=scheduler,
-                                        optimizer=optimizer,
-                                        criterion=criterion,
-                                        flow_type="train")
-        
+                                       iteration = iteration,
+                                       x = train_x,
+                                       static = None,
+                                       y = train_y,
+                                       model = model,
+                                       device = device,
+                                       scheduler=scheduler,
+                                       optimizer=optimizer,
+                                       criterion=criterion,
+                                       flow_type="train")
+
         training_loss.append(iter_loss)
-
-        # print("Training Loss : {}".format(iter_loss))
-
 
         # Validation Step Start
         if iteration % (iter_num_per_epoch) == 0:
             model.eval()
-            val_iteration   = 0
+            val_iteration = 0
 
             validation_loss = []
 
@@ -163,17 +160,17 @@ for epoch in range(1, args.epochs+1):
                         val_y = val_y.to(device)
 
                     model, val_loss = get_trainer(args = args,
-                                                    iteration = iteration,
-                                                    x = val_x,
-                                                    static = None,
-                                                    y = val_y,
-                                                    model = model,
-                                                    device = device,
-                                                    scheduler=scheduler,
-                                                    optimizer=optimizer,
-                                                    criterion=criterion,
-                                                    flow_type="val")
-                    
+                                                  iteration = iteration,
+                                                  x = val_x,
+                                                  static = None,
+                                                  y = val_y,
+                                                  model = model,
+                                                  device = device,
+                                                  scheduler=scheduler,
+                                                  optimizer=optimizer,
+                                                  criterion=criterion,
+                                                  flow_type="val")
+
                     val_iteration += 1
                     validation_loss.append(val_loss)
             model.train()
@@ -181,7 +178,7 @@ for epoch in range(1, args.epochs+1):
 
     print(len(training_loss))
     print(len(validation_loss))
-    
+
     pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(sum(validation_loss)/len(validation_loss)))
     pbar.refresh()
     validation_loss_lst.append(sum(validation_loss)/len(validation_loss))
@@ -210,16 +207,16 @@ with torch.no_grad():
             test_y = test_y.to(device)
 
         pred, true = get_trainer(args = args,
-                                iteration = iteration,
-                                x = test_x,
-                                static = None,
-                                y = test_y,
-                                model = model,
-                                device = device,
-                                scheduler=scheduler,
-                                optimizer=optimizer,
-                                criterion=criterion,
-                                flow_type="test")
+                                 iteration = iteration,
+                                 x = test_x,
+                                 static = None,
+                                 y = test_y,
+                                 model = model,
+                                 device = device,
+                                 scheduler=scheduler,
+                                 optimizer=optimizer,
+                                 criterion=criterion,
+                                 flow_type="test")
 
         pred_batches.append(pred)
         true_batches.append(true)

@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from transformers.models.mobilebert.modeling_mobilebert import Bottleneck
 import torch.nn.functional as F
 
 
@@ -50,11 +49,11 @@ class AUDIO_TXT_MBT_SHORTFORM(nn.Module):
         self.batch_size = args.batch_size
 
         self.mbt_layers = nn.ModuleList()
-        for i in range(self.transformer_num_layers):
+        for _ in range(self.transformer_num_layers):
             self.mbt_layers.append(MultimodalBottleneckTransformerLayer(args))
 
         self.final_layer = nn.Linear(512*2, args.num_labels)
-    
+
     def forward(self, audio_out, txt_out):
 
         txt_out = self.txt_resize_ff(txt_out)
@@ -63,10 +62,10 @@ class AUDIO_TXT_MBT_SHORTFORM(nn.Module):
         audio_out = F.gelu(audio_out)
 
         mbt_out = (audio_out, self.bottleneck_tokens, txt_out)              # ((16, 512), (16, 256), (16, 512))
-        
+
         for i in range(self.transformer_num_layers):
             mbt_out = self.mbt_layers[i](mbt_out)                           # ((16, 512), (16, 256), (16, 512))
-        
+
         out = torch.cat((mbt_out[0], mbt_out[2]), dim=1)
         out = self.final_layer(out)
 

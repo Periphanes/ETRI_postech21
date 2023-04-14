@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import numpy as np
 
 from control.config import args
+
 
 def binary_classification_static(args, iteration, x, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     x = x.type(torch.FloatTensor).to(device)
@@ -25,16 +24,15 @@ def binary_classification_static(args, iteration, x, y, model, device, scheduler
     elif flow_type == "val":
         output = model(x)
         output = output.squeeze()
-
         loss = criterion(output, y)
 
     else:
         output = model(x)
         output = output.squeeze()
-
         return output, y
-    
+
     return model, loss.item()
+
 
 def classification_with_txt_static(args, iteration, x1, x2, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     x1 = x1.type(torch.LongTensor).to(device)
@@ -45,7 +43,7 @@ def classification_with_txt_static(args, iteration, x1, x2, y, model, device, sc
         optimizer.zero_grad()
         output = model(x1, x2)
         output = output.squeeze()
-        
+
         loss = criterion(output, y)
         loss.backward()
 
@@ -57,16 +55,15 @@ def classification_with_txt_static(args, iteration, x1, x2, y, model, device, sc
     elif flow_type == "val":
         output = model(x1, x2)
         output = output.squeeze()
-
         loss = criterion(output, y)
 
     else:
         output = model(x1, x2)
         output = output.squeeze()
-
         return output, y
-    
+
     return model, loss.item()
+
 
 def classification_audio(args, iteration, x, attention, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     x = x.type(torch.FloatTensor).to(device)
@@ -84,18 +81,17 @@ def classification_audio(args, iteration, x, attention, y, model, device, schedu
 
         optimizer.step()
         scheduler.step()
-    
+
     elif flow_type == "val":
         output = model(x, attention_mask=attention)
-
         loss = criterion(output, y)
 
     else:
         output = model(x, attention_mask=attention)
-
         return output, y
 
     return model, loss.item()
+
 
 def classification_audio_txt(args, iteration, x_audio, x_audio_attn, x_txt, x_txt_attn, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     x_audio = x_audio.type(torch.FloatTensor).to(device)
@@ -120,16 +116,15 @@ def classification_audio_txt(args, iteration, x_audio, x_audio_attn, x_txt, x_tx
     elif flow_type == "val":
         output = model(x_audio, x_audio_attn, x_txt, x_txt_attn)
         output = output.squeeze()
-
         loss = criterion(output, y)
 
     else:
         output = model(x_audio, x_audio_attn, x_txt, x_txt_attn)
         output = output.squeeze()
-
         return output, y
-    
+
     return model, loss.item()
+
 
 def classification_audio_txt_shortform(args, iteration, x_audio, x_txt, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     x_audio = x_audio.type(torch.FloatTensor).to(device)
@@ -152,18 +147,16 @@ def classification_audio_txt_shortform(args, iteration, x_audio, x_txt, y, model
     elif flow_type == "val":
         output = model(x_audio, x_txt)
         output = output.squeeze()
-
         loss = criterion(output, y)
-
         return output, loss.item()
 
     else:
         output = model(x_audio, x_txt)
         output = output.squeeze()
-
         return output, y
-    
+
     return model, loss.item()
+
 
 def classification_txt_shortform(args, iteration, x_txt, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     x_txt = x_txt.type(torch.FloatTensor).to(device)
@@ -185,15 +178,12 @@ def classification_txt_shortform(args, iteration, x_txt, y, model, device, sched
     elif flow_type == "val":
         output = model(x_txt)
         output = output.squeeze()
-
         loss = criterion(output, y)
-
         return output, loss.item()
 
     else:
         output = model(x_txt)
         output = output.squeeze()
-
         return output, y
     
     return model, loss.item()
@@ -218,15 +208,12 @@ def classification_audio_shortform(args, iteration, x_txt, y, model, device, sch
     elif flow_type == "val":
         output = model(x_txt)
         output = output.squeeze()
-
         loss = criterion(output, y)
-
         return output, loss.item()
 
     else:
         output = model(x_txt)
         output = output.squeeze()
-
         return output, y
-    
+
     return model, loss.item()
