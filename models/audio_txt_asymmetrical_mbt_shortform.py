@@ -13,8 +13,8 @@ class MultimodalBottleneckTransformerLayer(nn.Module):
 
         # self.audio_to_bottle = nn.Linear(512 + args.bottleneck_length, args.bottleneck_length)
         # self.txt_to_bottle = nn.Linear(512 + args.bottleneck_length, args.bottleneck_length)
-        self.audio_to_bottle = nn.MaxPool1d(kernel_size=3, stride=3, padding=0)
-        self.txt_to_bottle = nn.MaxPool1d(kernel_size=3, stride=3, padding=0)
+        # self.audio_to_bottle = nn.MaxPool1d(kernel_size=3, stride=3, padding=0)
+        # self.txt_to_bottle = nn.MaxPool1d(kernel_size=3, stride=3, padding=0)
         # self.get_audio = nn.Linear(512 + args.bottleneck_length, 512)
         # self.get_txt = nn.Linear(512 + args.bottleneck_length, 512)
         
@@ -33,8 +33,8 @@ class MultimodalBottleneckTransformerLayer(nn.Module):
         audio_out = self.audio_transformer_layer(audio_bot)         # (16, 256 + 512)
         txt_out = self.txt_transformer_layer(txt_bot)               # (16, 256 + 512)
 
-        bot_audio_part = self.audio_to_bottle(audio_out)            # (16, 256)
-        bot_txt_part = self.txt_to_bottle(txt_out)                  # (16, 256)
+        bot_audio_part = audio_out[:, :256]             # (16, 256)
+        bot_txt_part = txt_out[:, :256]                 # (16, 256)
 
         # audio_weight = 0.01 # weight of audio compared to text
         

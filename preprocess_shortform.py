@@ -67,10 +67,13 @@ config = AutoConfig.from_pretrained(
     finetuning_task = "wav2vec2_clf"
 )
 setattr(config, 'pooling_mode', 'mean')
-audio_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean", config=config).to(device)
+# audio_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean", config=config).to(device)
 
-txt_feature_extractor = ElectraModel.from_pretrained("beomi/KcELECTRA-base-v2022").to(device)
-txt_feature_extractor.resize_token_embeddings(54349)
+# txt_feature_extractor = ElectraModel.from_pretrained("beomi/KcELECTRA-base-v2022").to(device)
+# txt_feature_extractor.resize_token_embeddings(54349)
+
+audio_feature_extractor = torch.load("../../saved_models/audio_feature_extractor.pt", map_location=device).to(device)
+txt_feature_extractor = torch.load("../../saved_models/txt_feature_extractor.pt", map_location=device).to(device)
 
 target_sampling_rate = processor.feature_extractor.sampling_rate
 
