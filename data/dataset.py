@@ -18,7 +18,7 @@ class binary_static_Dataset(torch.utils.data.Dataset):
                 if len(data_point["total_emot"]) > 1:
                     continue
 
-                if data_point["text"] == None:
+                if data_point["text"] == None or "input_ids" not in data_point:
                     continue
 
                 self._data_list.append(pkl_path)

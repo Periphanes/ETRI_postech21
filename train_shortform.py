@@ -32,7 +32,7 @@ args.seed = args.seed_list[0]
 torch.manual_seed(args.seed)
 torch.cuda.manual_seed_all(args.seed)
 np.random.seed(args.seed)
-random.seed(args.seed + 1)
+random.seed(args.seed)
 
 # Setting flags to make sure reproducability for certain seeds
 # cudnn.deterministic weeds out random algorithms,
@@ -70,8 +70,8 @@ train_loader, val_loader, test_loader = get_data_loader(args)
 
 model = get_model(args)
 model = model(args).to(device)
-for i in model.ff_audio1.parameters():
-    print(i)
+# for i in model.ff_audio1.parameters():
+    # print(i)
 
 if "shortform" not in args.input_types:
     if "audio" in args.input_types:
@@ -144,20 +144,19 @@ for epoch in range(1, args.epochs+1):
         iter_in_epoch           += 1
         total_epoch_iteration   += 1
 
-        if iteration > 1:
-            model, iter_loss = get_trainer(args = args,
-                                            iteration = iteration,
-                                            x = train_x,
-                                            static = None,
-                                            y = train_y,
-                                            model = model,
-                                            device = device,
-                                            scheduler=scheduler,
-                                            optimizer=optimizer,
-                                            criterion=criterion,
-                                            flow_type="train")
-        
-            training_loss.append(iter_loss)
+        model, iter_loss = get_trainer(args = args,
+                                        iteration = iteration,
+                                        x = train_x,
+                                        static = None,
+                                        y = train_y,
+                                        model = model,
+                                        device = device,
+                                        scheduler=scheduler,
+                                        optimizer=optimizer,
+                                        criterion=criterion,
+                                        flow_type="train")
+    
+        training_loss.append(iter_loss)
 
         # print("Training Loss : {}".format(iter_loss))
 
@@ -278,9 +277,9 @@ target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust
 print(classification_report(true, pred, target_names=target_names))
 print(accuracy_score(true, pred))
 print(validation_loss_lst)
-print(model.mbt_layers[0].audio_weight)
-print(model.mbt_layers[0].txt_weight)
-print(model.mbt_layers[1].audio_weight)
-print(model.mbt_layers[1].txt_weight)
-for i in model.ff_audio1.parameters():
-    print(i)
+# print(model.mbt_layers[0].audio_weight)
+# print(model.mbt_layers[0].txt_weight)
+# print(model.mbt_layers[1].audio_weight)
+# print(model.mbt_layers[1].txt_weight)
+# for i in model.ff_audio1.parameters():
+#     print(i)

@@ -28,9 +28,16 @@ def get_data_loader(args):
         session_ids_20 = [i for i in range(21,41)]
         random.shuffle(session_ids_20)
 
+        session_ids_other = [i for i in range(0, 5)]
+        random.shuffle(session_ids_other)
+
         train_ids = session_ids[:12] + session_ids_20[:12]
         val_ids = session_ids[12:16] + session_ids_20[12:16]
         test_ids = session_ids[16:] + session_ids_20[16:]
+
+        train_ids_other = session_ids_other[:3]
+        val_ids_other = session_ids_other[3:4]
+        test_ids_other = session_ids_other[4:5]
 
     if args.small_dataset == True:
         train_ids = [7,8]
@@ -49,14 +56,14 @@ def get_data_loader(args):
             val_data_list.append(data_file)
         elif data_session_id in test_ids:
             test_data_list.append(data_file)
-        # else:
-        #     div = ord(data_file.split("/")[-1][-8]) % 5
-        #     if div < 3:
-        #         train_data_list.append(data_file)
-        #     elif div == 3:
-        #         val_data_list.append(data_file)
-        #     else:
-        #         test_data_list.append(data_file)
+        else:
+            div = ord(data_file.split("/")[-1][-8]) % 5
+            if div in train_ids_other:
+                train_data_list.append(data_file)
+            elif div in val_ids_other:
+                val_data_list.append(data_file)
+            elif div in test_ids_other:
+                test_data_list.append(data_file)
 
     if args.trainer == "binary_classification_static" or args.trainer == "classification_with_txt_static":
         train_data      = binary_static_Dataset(args, data=train_data_list, data_type="training dataset")

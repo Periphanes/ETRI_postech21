@@ -15,27 +15,32 @@ class KCELECTRA_MODIFIED(nn.Module):
         
         self.num_labels = args.num_labels
 
-        self.ff1 = nn.Linear(768, 1024)
-        self.ff2 = nn.Linear(1024, 1024)
-        self.ff3 = nn.Linear(1024, self.num_labels)
-        self.bn1 = nn.BatchNorm1d(1024)
-        self.bn2 = nn.BatchNorm1d(1024)
-        self.dp1 = nn.Dropout(0.1)
-        self.dp2 = nn.Dropout(0.1)
+        # self.ff1 = nn.Linear(768, 1024)
+        # self.ff2 = nn.Linear(1024, 1024)
+        # self.ff3 = nn.Linear(1024, self.num_labels)
+        # self.bn1 = nn.BatchNorm1d(1024)
+        # self.bn2 = nn.BatchNorm1d(1024)
+        # self.dp1 = nn.Dropout(0.1)
+        # self.dp2 = nn.Dropout(0.1)
 
-        self.ff_test = nn.Linear(768, 512)
+        self.dense = nn.Linear(768, 256)
+        self.dropout = nn.Dropout(0.1)
+        self.out_proj = nn.Linear(256, self.num_labels)
     
     def forward(self, x1, x2):
-        # output = self.pretrained_model(x1, attention_mask=x2)
-        # print(output.last_hidden_state.shape)
+        # output = self.txt_feature_extractor(x1, attention_mask=x2).last_hidden_state
+        # output = output[:, 0, :]
+        # output = self.dp1(self.bn1(F.relu(self.ff1(output))))
+        # output = self.dp2(self.bn2(F.relu(self.ff2(output))))
+        # output = self.ff3(output)
+        # return output
 
-        # k = self.ff_test(output.last_hidden_state)
-        # print(k.shape)
-        # exit(1)
-
-        output = self.txt_feature_extractor(x1, attention_mask=x2).last_hidden_state
-        output = output[:, 0, :]
-        output = self.dp1(self.bn1(F.relu(self.ff1(output))))
-        output = self.dp2(self.bn2(F.relu(self.ff2(output))))
-        output = self.ff3(output)
-        return output
+        features = self.txt_feature_extractor(x1, attention_mask=x2).last_hidden_state
+        x = features[:, 0, :]  # take <s> token (equiv. to [CLS])
+        x = self.dropout(x)
+        x = self.dense(x)
+        x = F.gelu(x)  # although BERT uses tanh here, it seems Electra authors used gelu here
+        x = self.dropout(x)
+        x = self.out_proj(x)
+        return x
+        
