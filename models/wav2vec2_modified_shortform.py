@@ -43,14 +43,16 @@ class WAV2VEC2_MODIFIED_SHORTFORM(nn.Module):
 
         # self.audio_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean", config=config)
 
-        self.ff1 = nn.Linear(79872, 512)
-        self.ff2 = nn.Linear(512, self.num_labels)
-        self.bn1 = nn.BatchNorm1d(512)
-        self.dp1 = nn.Dropout(0.1)
+        self.dense = nn.Linear(512, 256)
+        self.dropout = nn.Dropout(0.1)
+        self.out_proj = nn.Linear(256, self.num_labels)
         
         # self.audio_feature_extractor.init_weights()
 
-    def forward(self, x, attention_mask=None):
-        output = self.dp1(self.bn1(F.relu(self.ff1(x.view(16, -1)))))
-        output = self.ff2(output)
-        return output
+    def forward(self, x):
+        x = self.dropout(x)
+        x = self.dense(x)
+        x = F.gelu(x)  # although BERT uses tanh here, it seems Electra authors used gelu here
+        x = self.dropout(x)
+        x = self.out_proj(x)
+        return x

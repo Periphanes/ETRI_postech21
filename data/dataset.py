@@ -51,7 +51,7 @@ class wav2vec2_Dataset(torch.utils.data.Dataset):
     def __getitem__(self,index):
         return self._data_list[index]
 
-class wav2vec2_shortform_Dataset(torch.utils.data.Dataset):
+class audio_shortform_Dataset(torch.utils.data.Dataset):
     def __init__(self, args, data, data_type='dataset'):
         self._data_list = []
 
@@ -65,7 +65,7 @@ class wav2vec2_shortform_Dataset(torch.utils.data.Dataset):
                 if data_point["wav_dir"][-3:] != "wav":
                     continue
 
-                self._data_list.append((data_point['total_emot'][0], data_point['audio_output']))
+                self._data_list.append((data_point['audio_output'], data_point['total_emot'][0]))
     
     def __len__(self):
         return len(self._data_list)

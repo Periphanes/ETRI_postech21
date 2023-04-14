@@ -160,7 +160,7 @@ def collate_audio_shortform(train_data):
 
     for data_point in train_data:
         X_audio_batch.append(data_point[0].squeeze())
-        y_batch.append(data_point[2])
+        y_batch.append(data_point[1])
     
     X_audio = torch.stack(X_audio_batch)
     y = torch.tensor(y_batch)
