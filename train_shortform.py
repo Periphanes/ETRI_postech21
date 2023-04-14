@@ -16,7 +16,9 @@ from models import get_model
 from trainer import get_trainer
 from data.data_preprocess import get_data_loader
 
-from sklearn.metrics import classification_report, f1_score, accuracy_score, precision_score, recall_score
+from sklearn.metrics import classification_report
+from sklearn.metrics import f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score
 from transformers import AutoConfig
 
 log_directory = os.path.join(args.dir_result, args.project_name)
@@ -107,7 +109,10 @@ total_epoch_iteration = 0
 pbar = tqdm(total=args.epochs, initial=0, bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}")
 
 validation_loss_lst = []
-f1_score_lst = []
+accuracy_lst = []
+
+tolerance = 3
+over = 0
 
 for epoch in range(1, args.epochs+1):
     training_loss = []
@@ -224,9 +229,9 @@ for epoch in range(1, args.epochs+1):
 
     pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
     true = torch.cat(true_batches).cpu()
-    f1_score_lst.append(f1_score(true, pred, average='weighted'))
+    accuracy_lst.append(accuracy_score(pred, true))
 
-    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(validation_loss_lst[-1]) + " / Accuracy : " + str(f1_score_lst[-1]))
+    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(accuracy_lst[-1]) + " / Accuracy : " + str(accuracy_lst[-1]))
     pbar.refresh()
     
     # Alternative stopping criterion
