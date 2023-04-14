@@ -230,9 +230,12 @@ for epoch in range(1, args.epochs+1):
     pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(validation_loss_lst[-1]) + " / Accuracy : " + str(accuracy_lst[-1]))
     pbar.refresh()
     
-
-    if len(accuracy_lst) > 2 and max(accuracy_lst) > accuracy_lst[-1] and max(accuracy_lst) > accuracy_lst[-2] and max(accuracy_lst) > accuracy_lst[-3]:
+    # Alternative stopping criterion
+    if len(accuracy_lst) >= 5 and accuracy_lst[-1] - accuracy_lst[-2] < 0.005:
         break
+
+    # if len(accuracy_lst) > 2 and max(accuracy_lst) > accuracy_lst[-1] and max(accuracy_lst) > accuracy_lst[-2] and max(accuracy_lst) > accuracy_lst[-3]:
+    #     break
 
 
 model.eval()

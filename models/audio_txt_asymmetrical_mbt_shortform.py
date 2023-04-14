@@ -13,8 +13,8 @@ class MultimodalBottleneckTransformerLayer(nn.Module):
 
         # self.audio_to_bottle = nn.Linear(512 + args.bottleneck_length, args.bottleneck_length)
         # self.txt_to_bottle = nn.Linear(512 + args.bottleneck_length, args.bottleneck_length)
-        self.audio_to_bottle = nn.MaxPool1d(kernel_size=3, stride=3, padding=0)
-        self.txt_to_bottle = nn.MaxPool1d(kernel_size=3, stride=3, padding=0)
+        self.audio_to_bottle = nn.Conv1d(256, 256, kernel_size=3, stride=3, padding=0)
+        self.txt_to_bottle = nn.Conv1d(256, 256, kernel_size=3, stride=3, padding=0)
         # self.get_audio = nn.Linear(512 + args.bottleneck_length, 512)
         # self.get_txt = nn.Linear(512 + args.bottleneck_length, 512)
         
