@@ -228,17 +228,16 @@ for epoch in range(1, args.epochs+1):
 
     pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
     true = torch.cat(true_batches).cpu()
-    accuracy_lst.append(f1_score(pred, true, average = 'weighted'))
+    accuracy_lst.append(accuracy_score(pred, true))
 
-    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(validation_loss_lst[-1]) + " / Accuracy : " + str(accuracy_lst[-1]))
+    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(validation_loss_lst[-1]) + " / Accuracy : " + str(f1_score_lst[-1]))
     pbar.refresh()
     
+    # Alternative stopping criterion
+    # if len(f1_score_lst) >= 5 and f1_score_lst[-1] - f1_score_lst[-2] < 0.005:
+    #     break
 
-    if len(accuracy_lst) > 1 and max(accuracy_lst) > accuracy_lst[-1]:
-        over += 1
-    if len(accuracy_lst) > 1 and max(accuracy_lst) <= accuracy_lst[-1]:
-        over = 0
-    if over >= tolerance:
+    if len(accuracy_lst) > 2 and max(accuracy_lst) > accuracy_lst[-1] and max(accuracy_lst) > accuracy_lst[-2] and max(accuracy_lst) > accuracy_lst[-3]:
         break
 
 
@@ -295,7 +294,9 @@ true = torch.cat(true_batches).cpu()
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 
 print(classification_report(true, pred, target_names=target_names))
-print(accuracy_score(true, pred))
+print(f1_score(true, pred, average='weighted'))
+print(precision_score(true, pred, average='weighted'))
+print(recall_score(true, pred, average='weighted'))
 print(validation_loss_lst)
 # print(model.mbt_layers[0].audio_weight)
 # print(model.mbt_layers[0].txt_weight)
