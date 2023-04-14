@@ -16,9 +16,7 @@ from models import get_model
 from trainer import get_trainer
 from data.data_preprocess import get_data_loader
 
-from sklearn.metrics import classification_report
-from sklearn.metrics import f1_score
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import classification_report, f1_score, accuracy_score, precision_score, recall_score
 from transformers import AutoConfig
 
 log_directory = os.path.join(args.dir_result, args.project_name)
@@ -291,7 +289,9 @@ true = torch.cat(true_batches).cpu()
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 
 print(classification_report(true, pred, target_names=target_names))
-print(accuracy_score(true, pred))
+print(f1_score(true, pred, average='micro'))
+print(precision_score(true, pred, average='micro'))
+print(recall_score(true, pred, average='micro'))
 print(validation_loss_lst)
 # print(model.mbt_layers[0].audio_weight)
 # print(model.mbt_layers[0].txt_weight)
