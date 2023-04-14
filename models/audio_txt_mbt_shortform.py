@@ -8,22 +8,11 @@ class MultimodalBottleneckTransformerLayer(nn.Module):
     def __init__(self, args):
         super().__init__()
 
-        transformer_num_head = 16
+        transformer_num_head = 8
         transformer_ff_dim = 1024
-        self.bottleneck_length = args.bottleneck_length
 
-        # self.audio_to_bottle = nn.Linear(512 + args.bottleneck_length, args.bottleneck_length)
-        # self.txt_to_bottle = nn.Linear(512 + args.bottleneck_length, args.bottleneck_length)
-        #self.audio_to_bottle = nn.Conv1d(256, 256, kernel_size=3, stride=3, padding=0)
-        #self.txt_to_bottle = nn.Conv1d(256, 256, kernel_size=3, stride=3, padding=0)
-        # self.get_audio = nn.Linear(512 + args.bottleneck_length, 512)
-        # self.get_txt = nn.Linear(512 + args.bottleneck_length, 512)
-        
-        #self.audio_weight = nn.Parameter(torch.FloatTensor([0.5]).to(args.device))
-        #self.txt_weight = nn.Parameter(torch.FloatTensor([0.5]).to(args.device))
-
-        self.audio_transformer_layer = nn.TransformerEncoderLayer(512 + self.bottleneck_length, nhead=transformer_num_head, dim_feedforward=transformer_ff_dim)
-        self.txt_transformer_layer = nn.TransformerEncoderLayer(512 + self.bottleneck_length, nhead=transformer_num_head, dim_feedforward=transformer_ff_dim)
+        self.audio_transformer_layer = nn.TransformerEncoderLayer(512 + args.bottleneck_length, nhead=transformer_num_head, dim_feedforward=transformer_ff_dim)
+        self.txt_transformer_layer = nn.TransformerEncoderLayer(512 + args.bottleneck_length, nhead=transformer_num_head, dim_feedforward=transformer_ff_dim)
 
     def forward(self, x):
         x_audio, x_bottle, x_txt = x[0], x[1], x[2]
@@ -34,22 +23,18 @@ class MultimodalBottleneckTransformerLayer(nn.Module):
         audio_out = self.audio_transformer_layer(audio_bot)         # (16, 256 + 512)
         txt_out = self.txt_transformer_layer(txt_bot)               # (16, 256 + 512)
 
-        bot_audio_part = audio_out[:, :self.bottleneck_length]#self.audio_to_bottle(audio_out)            # (16, 256)
-        bot_txt_part = txt_out[: ,:self.bottleneck_length]#self.txt_to_bottle(txt_out)                  # (16, 256)
-
-        audio_weight = 0.5 # weight of audio compared to text
-        
-        bot_audio_part = bot_audio_part * audio_weight
-        #bot_txt_part = bot_txt_part * self.txt_weight
+        bot_audio_part = audio_out[:, :256]             # (16, 256)
+        bot_txt_part = txt_out[:, :256]                 # (16, 256)
+        x_bottle = torch.div(torch.add(bot_audio_part, bot_txt_part), 2)
 
         x_bottle = torch.add(bot_audio_part, bot_txt_part)          # (16, 256)
 
-        x_audio = audio_out[:, self.bottleneck_length:]                                # (16, 512)
-        x_txt = txt_out[:, self.bottleneck_length:]                                    # (16, 512)
+        x_audio = audio_out[:, 256:]                                # (16, 512)
+        x_txt = txt_out[:, 256:]                                    # (16, 512)
 
         return (x_audio, x_bottle, x_txt)
 
-class AUDIO_TXT_ASYMMETRICAL_MBT_SHORTFORM(nn.Module):
+class AUDIO_TXT_MBT_SHORTFORM(nn.Module):
     def __init__(self, args):
         super().__init__()
 

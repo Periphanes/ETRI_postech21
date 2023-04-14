@@ -17,7 +17,7 @@ from trainer import get_trainer
 from data.data_preprocess import get_data_loader
 
 from sklearn.metrics import classification_report
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, precision_score, recall_score
 from sklearn.metrics import accuracy_score
 from transformers import AutoConfig
 
@@ -230,7 +230,7 @@ for epoch in range(1, args.epochs+1):
     true = torch.cat(true_batches).cpu()
     accuracy_lst.append(accuracy_score(pred, true))
 
-    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(validation_loss_lst[-1]) + " / Accuracy : " + str(f1_score_lst[-1]))
+    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(accuracy_lst[-1]) + " / Accuracy : " + str(accuracy_lst[-1]))
     pbar.refresh()
     
     # Alternative stopping criterion
