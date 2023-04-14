@@ -8,11 +8,14 @@ class MultimodalBottleneckTransformerLayer(nn.Module):
     def __init__(self, args):
         super().__init__()
 
-        transformer_num_head = 8
-        transformer_ff_dim = 1024
+        self.transformer_ff_dim = args.transformer_ff_dim
+        self.transformer_dropout = args.transformer_dropout
+        self.transformer_activation = args.transformer_activation
+        self.bottleneck_length = args.bottleneck_length
+        self.transformer_num_head = args.transformer_heads
 
-        self.audio_transformer_layer = nn.TransformerEncoderLayer(512 + args.bottleneck_length, nhead=transformer_num_head, dim_feedforward=transformer_ff_dim)
-        self.txt_transformer_layer = nn.TransformerEncoderLayer(512 + args.bottleneck_length, nhead=transformer_num_head, dim_feedforward=transformer_ff_dim)
+        self.audio_transformer_layer = nn.TransformerEncoderLayer(512 + self.bottleneck_length, nhead=self.transformer_num_head, dim_feedforward=self.transformer_ff_dim, dropout=self.transformer_dropout, activation=self.transformer_activation)
+        self.txt_transformer_layer = nn.TransformerEncoderLayer(512 + self.bottleneck_length, nhead=self.transformer_num_head, dim_feedforward=self.transformer_ff_dim, dropout=self.transformer_dropout, activation=self.transformer_activation)
 
     def forward(self, x):
         x_audio, x_bottle, x_txt = x[0], x[1], x[2]
@@ -23,14 +26,14 @@ class MultimodalBottleneckTransformerLayer(nn.Module):
         audio_out = self.audio_transformer_layer(audio_bot)         # (16, 256 + 512)
         txt_out = self.txt_transformer_layer(txt_bot)               # (16, 256 + 512)
 
-        bot_audio_part = audio_out[:, :256]             # (16, 256)
-        bot_txt_part = txt_out[:, :256]                 # (16, 256)
+        bot_audio_part = audio_out[:, :self.bottleneck_length]             # (16, 256)
+        bot_txt_part = txt_out[:, :self.bottleneck_length]                 # (16, 256)
         x_bottle = torch.div(torch.add(bot_audio_part, bot_txt_part), 2)
 
         x_bottle = torch.add(bot_audio_part, bot_txt_part)          # (16, 256)
 
-        x_audio = audio_out[:, 256:]                                # (16, 512)
-        x_txt = txt_out[:, 256:]                                    # (16, 512)
+        x_audio = audio_out[:, self.bottleneck_length:]                                # (16, 512)
+        x_txt = txt_out[:, self.bottleneck_length:]                                    # (16, 512)
 
         return (x_audio, x_bottle, x_txt)
 
@@ -43,9 +46,8 @@ class AUDIO_TXT_MBT_SHORTFORM(nn.Module):
 
         self.bottleneck_tokens = nn.Parameter(torch.randn(args.batch_size, args.bottleneck_length)).to(args.device)
 
-        self.transformer_num_layers = 2
+        self.transformer_num_layers = args.transformer_layers
         self.batch_size = args.batch_size
-        self.bottleneck_length = args.bottleneck_length
 
         self.mbt_layers = nn.ModuleList()
         for i in range(self.transformer_num_layers):

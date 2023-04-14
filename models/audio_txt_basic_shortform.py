@@ -8,19 +8,19 @@ class AUDIO_TXT_BASIC_SHORTFORM(nn.Module):
     def __init__(self, args):
         super().__init__()
 
-        self.num_labels = args.num_labels
-        self.batch_size = args.batch_size
+        self.transformer_ff_dim = args.transformer_ff_dim
+        self.transformer_dropout = args.transformer_dropout
+        self.transformer_activation = args.transformer_activation
+        self.transformer_num_head = args.transformer_heads
+        self.transformer_num_layers = args.transformer_layers
 
         self.txt_resize_ff = nn.Linear(768, 512)
         self.audio_resize_ff = nn.Linear(512, 512)
         self.cls_tokens = nn.Parameter(torch.randn(args.batch_size, 512)).to(args.device)
 
-        transformer_num_head = 8
-        transformer_ff_dim = 1024
-        transformer_num_layers = 8
 
-        encoder_layer = nn.TransformerEncoderLayer(512 * 2, nhead=transformer_num_head, dim_feedforward=transformer_ff_dim)
-        self.final_transformer = nn.TransformerEncoder(encoder_layer, num_layers=transformer_num_layers)
+        encoder_layer = nn.TransformerEncoderLayer(512 * 2, nhead=self.transformer_num_head, dim_feedforward=self.transformer_ff_dim, dropout=self.transformer_dropout, activation=self.transformer_activation)
+        self.final_transformer = nn.TransformerEncoder(encoder_layer, num_layers=self.transformer_num_layers)
 
         self.final_layer = nn.Linear(512 * 2, args.num_labels)
 

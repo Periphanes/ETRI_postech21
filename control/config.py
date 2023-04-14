@@ -29,7 +29,14 @@ parser.add_argument('--problem-type', type=str, default="multi_label_classificat
 parser.add_argument('--pooling-mode', type=str, default="mean")
 
 parser.add_argument('--audio-max-length', type=int, default=50000)
-parser.add_argument('--bottleneck-length', type=int, default=256)
+parser.add_argument('--bottleneck-length', type=int, default=16)
+parser.add_argument('--audio-weight', type=float, default=0.09)
+parser.add_argument('--txt-weight', type=float, default=1.0)
+parser.add_argument('--transformer-layers', type=int, default=16)
+parser.add_argument('--transformer-heads', type=int, default=16)
+parser.add_argument('--transformer-ff-dim', type=int, default=1024)
+parser.add_argument('--transformer-dropout', type=float, default=0.12)
+parser.add_argument('--transformer-activation', type=str, default='gelu')
 
 args = parser.parse_args()
 args.dir_root = os.getcwd()

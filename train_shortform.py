@@ -68,8 +68,6 @@ train_loader, val_loader, test_loader = get_data_loader(args)
 
 model = get_model(args)
 model = model(args).to(device)
-# for i in model.ff_audio1.parameters():
-    # print(i)
 
 if "shortform" not in args.input_types:
     if "audio" in args.input_types:
@@ -79,6 +77,9 @@ if "shortform" not in args.input_types:
         for param in model.txt_feature_extractor.parameters():
             param.requires_grad = False
 
+model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+params = sum([np.prod(p.size()) for p in model_parameters])
+print(params)
 
 # criterion = nn.BCELoss(reduction='mean')
 # frequency = np.array([363, 161, 665, 1714, 316, 526, 159])
@@ -232,7 +233,7 @@ for epoch in range(1, args.epochs+1):
     # if len(f1_score_lst) >= 5 and f1_score_lst[-1] - f1_score_lst[-2] < 0.005:
     #     break
 
-    if len(f1_score_lst) > 2 and max(f1_score_lst) > f1_score_lst[-1] and max(f1_score_lst) > f1_score_lst[-2] and max(f1_score_lst) > f1_score_lst[-3]:
+    if len(f1_score_lst) > 5 and ((max(f1_score_lst) > f1_score_lst[-1] and max(f1_score_lst) > f1_score_lst[-2] and max(f1_score_lst) > f1_score_lst[-3]) or (f1_score_lst[-1] == f1_score_lst[-2] and f1_score_lst[-1] == f1_score_lst[-3])):
         break
 
 
@@ -297,5 +298,3 @@ print(validation_loss_lst)
 # print(model.mbt_layers[0].txt_weight)
 # print(model.mbt_layers[1].audio_weight)
 # print(model.mbt_layers[1].txt_weight)
-# for i in model.ff_audio1.parameters():
-#     print(i)
