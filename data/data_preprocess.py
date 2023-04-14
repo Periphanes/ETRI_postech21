@@ -56,14 +56,14 @@ def get_data_loader(args):
             val_data_list.append(data_file)
         elif data_session_id in test_ids:
             test_data_list.append(data_file)
-        else:
-            div = ord(data_file.split("/")[-1][-8]) % 5
-            if div in train_ids_other:
-                train_data_list.append(data_file)
-            elif div in val_ids_other:
-                val_data_list.append(data_file)
-            elif div in test_ids_other:
-                test_data_list.append(data_file)
+        # else:
+        #     div = ord(data_file.split("/")[-1][-8]) % 5
+        #     if div in train_ids_other:
+        #         train_data_list.append(data_file)
+        #     elif div in val_ids_other:
+        #         val_data_list.append(data_file)
+        #     elif div in test_ids_other:
+        #         test_data_list.append(data_file)
 
     if args.trainer == "binary_classification_static" or args.trainer == "classification_with_txt_static":
         train_data      = binary_static_Dataset(args, data=train_data_list, data_type="training dataset")
