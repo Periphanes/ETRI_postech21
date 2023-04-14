@@ -106,7 +106,7 @@ total_epoch_iteration = 0
 pbar = tqdm(total=args.epochs, initial=0, bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}")
 
 validation_loss_lst = []
-accuracy_lst = []
+f1_score_lst = []
 
 for epoch in range(1, args.epochs+1):
     training_loss = []
@@ -223,17 +223,17 @@ for epoch in range(1, args.epochs+1):
 
     pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
     true = torch.cat(true_batches).cpu()
-    accuracy_lst.append(accuracy_score(pred, true))
+    f1_score_lst.append(f1_score(true, pred, average='weighted'))
 
-    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(validation_loss_lst[-1]) + " / Accuracy : " + str(accuracy_lst[-1]))
+    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(validation_loss_lst[-1]) + " / Accuracy : " + str(f1_score_lst[-1]))
     pbar.refresh()
     
     # Alternative stopping criterion
-    if len(accuracy_lst) >= 5 and accuracy_lst[-1] - accuracy_lst[-2] < 0.005:
-        break
-
-    # if len(accuracy_lst) > 2 and max(accuracy_lst) > accuracy_lst[-1] and max(accuracy_lst) > accuracy_lst[-2] and max(accuracy_lst) > accuracy_lst[-3]:
+    # if len(f1_score_lst) >= 5 and f1_score_lst[-1] - f1_score_lst[-2] < 0.005:
     #     break
+
+    if len(f1_score_lst) > 2 and max(f1_score_lst) > f1_score_lst[-1] and max(f1_score_lst) > f1_score_lst[-2] and max(f1_score_lst) > f1_score_lst[-3]:
+        break
 
 
 model.eval()
