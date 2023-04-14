@@ -231,7 +231,7 @@ for epoch in range(1, args.epochs+1):
     pbar.refresh()
     
 
-    if len(accuracy_lst) > 3 and accuracy_lst[-2] > accuracy_lst[-1] and accuracy_lst[-3] > accuracy_lst[-2] and accuracy_lst[-4] > accuracy_lst[-3]:
+    if len(accuracy_lst) > 2 and max(accuracy_lst) > accuracy_lst[-1] and max(accuracy_lst) > accuracy_lst[-2] and max(accuracy_lst) > accuracy_lst[-3]:
         break
 
 

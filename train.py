@@ -63,9 +63,9 @@ train_loader, val_loader, test_loader = get_data_loader(args)
 model = get_model(args)
 model = model(args).to(device)
 
-if "audio" in args.input_types:
-    for param in model.audio_feature_extractor.parameters():
-        param.requires_grad = False
+# if "audio" in args.input_types:
+#     for param in model.audio_feature_extractor.parameters():
+#         param.requires_grad = False
 # if "txt" in args.input_types:
 #     for param in model.txt_feature_extractor.parameters():
 #         param.requires_grad = False
@@ -186,7 +186,7 @@ for epoch in range(1, args.epochs+1):
     pbar.refresh()
     validation_loss_lst.append(sum(validation_loss)/len(validation_loss))
 
-    if len(validation_loss_lst) > 3 and validation_loss_lst[-2] < validation_loss_lst[-1] and validation_loss_lst[-3] < validation_loss_lst[-2]:
+    if len(validation_loss_lst) > 2 and min(validation_loss_lst) < validation_loss_lst[-1] and min(validation_loss_lst) < validation_loss_lst[-2] and min(validation_loss_lst) < validation_loss_lst[-3]:
         break
 
 model.eval()
@@ -232,4 +232,4 @@ target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust
 print(classification_report(true, pred, target_names=target_names))
 print(validation_loss_lst)
 
-torch.save(model.txt_feature_extractor, './saved_models/txt_feature_extractor.pt')
+torch.save(model.audio_feature_extractor, './saved_models/audio_feature_extractor.pt')
