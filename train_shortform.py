@@ -289,9 +289,9 @@ true = torch.cat(true_batches).cpu()
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 
 print(classification_report(true, pred, target_names=target_names))
-print(f1_score(true, pred, average='micro'))
-print(precision_score(true, pred, average='micro'))
-print(recall_score(true, pred, average='micro'))
+print(f1_score(true, pred, average='weighted'))
+print(precision_score(true, pred, average='weighted'))
+print(recall_score(true, pred, average='weighted'))
 print(validation_loss_lst)
 # print(model.mbt_layers[0].audio_weight)
 # print(model.mbt_layers[0].txt_weight)
