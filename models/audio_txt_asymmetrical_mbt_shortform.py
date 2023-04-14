@@ -8,7 +8,7 @@ class MultimodalBottleneckTransformerLayer(nn.Module):
     def __init__(self, args):
         super().__init__()
 
-        transformer_num_head = 4
+        transformer_num_head = 8
         transformer_ff_dim = 1024
 
         # self.audio_to_bottle = nn.Linear(512 + args.bottleneck_length, args.bottleneck_length)
@@ -54,7 +54,6 @@ class AUDIO_TXT_ASYMMETRICAL_MBT_SHORTFORM(nn.Module):
 
         self.txt_resize_ff = nn.Linear(768, 512)
         self.audio_resize_ff = nn.Linear(512, 512)
-        self.dropout = nn.Dropout(0.1)
 
         self.bottleneck_tokens = nn.Parameter(torch.randn(args.batch_size, args.bottleneck_length)).to(args.device)
 
@@ -69,8 +68,6 @@ class AUDIO_TXT_ASYMMETRICAL_MBT_SHORTFORM(nn.Module):
         self.final_layer = nn.Linear(512*2, args.num_labels)
     
     def forward(self, audio_out, txt_out):
-        audio_out = self.dropout(audio_out)
-        txt_out = self.dropout(txt_out)
 
         txt_out = self.txt_resize_ff(txt_out)
         audio_out = self.audio_resize_ff(audio_out)
@@ -83,7 +80,6 @@ class AUDIO_TXT_ASYMMETRICAL_MBT_SHORTFORM(nn.Module):
             mbt_out = self.mbt_layers[i](mbt_out)                           # ((16, 512), (16, 256), (16, 512))
         
         out = torch.cat((mbt_out[0], mbt_out[2]), dim=1)
-        out = self.dropout(out)
         out = self.final_layer(out)
 
         return out
