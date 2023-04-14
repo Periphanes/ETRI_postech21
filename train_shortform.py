@@ -110,6 +110,9 @@ pbar = tqdm(total=args.epochs, initial=0, bar_format="{desc:<5}{percentage:3.0f}
 validation_loss_lst = []
 accuracy_lst = []
 
+tolerance = 3
+over = 0
+
 for epoch in range(1, args.epochs+1):
     training_loss = []
     validation_loss = []
@@ -225,13 +228,17 @@ for epoch in range(1, args.epochs+1):
 
     pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
     true = torch.cat(true_batches).cpu()
-    accuracy_lst.append(accuracy_score(pred, true))
+    accuracy_lst.append(f1_score(pred, true, average = 'weighted'))
 
     pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(validation_loss_lst[-1]) + " / Accuracy : " + str(accuracy_lst[-1]))
     pbar.refresh()
     
 
-    if len(accuracy_lst) > 2 and max(accuracy_lst) > accuracy_lst[-1] and max(accuracy_lst) > accuracy_lst[-2] and max(accuracy_lst) > accuracy_lst[-3]:
+    if len(accuracy_lst) > 1 and max(accuracy_lst) > accuracy_lst[-1]:
+        over += 1
+    if len(accuracy_lst) > 1 and max(accuracy_lst) <= accuracy_lst[-1]:
+        over = 0
+    if over >= tolerance:
         break
 
 
