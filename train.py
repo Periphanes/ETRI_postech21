@@ -232,4 +232,4 @@ target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust
 print(classification_report(true, pred, target_names=target_names))
 print(validation_loss_lst)
 
-torch.save(model.audio_feature_extractor, './saved_models/audio_feature_extractor.pt')
+torch.save(model.txt_feature_extractor, './saved_models/txt_feature_extractor.pt')
