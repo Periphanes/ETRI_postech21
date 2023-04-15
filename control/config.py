@@ -5,7 +5,7 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--dir-result', type=str, default='.')
 parser.add_argument('--project-name', type=str, default='proj')
-parser.add_argument('--seed-list', type=list, default=[5,23,7,89,4])
+parser.add_argument('--seed-list', type=list, default=[5, 23, 7, 89, 4])
 parser.add_argument('--cpu', type=bool, default=False)
 parser.add_argument('--datasets', type=str, default="default", choices=["default"])
 parser.add_argument('--small-dataset', type=bool, default=False)

@@ -50,7 +50,7 @@ args.device = device
 if args.input_types == "static":
     args.trainer = "binary_classification_static"
 elif args.input_types == "txt":
-    args.trainer = "classification_with_txt_static"
+    args.trainer = "classification_txt"
 elif args.input_types == "audio":
     args.trainer = "classification_audio"
 elif args.input_types == "audio_txt":
@@ -69,7 +69,7 @@ model = model(args).to(device)
 # if "txt" in args.input_types:
 #     for param in model.txt_feature_extractor.parameters():
 #         param.requires_grad = False
-    
+
 
 # criterion = nn.BCELoss(reduction='mean')
 # frequency = np.array([363, 161, 665, 1714, 316, 526, 159])
@@ -89,28 +89,25 @@ print("# of Iterations (total): ",      iter_num_total)
 
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=1)
 
-model.train()
 iteration = 0
-total_epoch_iteration = 0
 
 pbar = tqdm(total=args.epochs, initial=0, bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}")
 
-validation_loss_lst = []
+best_validation_loss = 10.0
 
 for epoch in range(1, args.epochs+1):
-    training_loss = []
-    validation_loss = []
 
-    epoch_losses = []
-    loss = 0
-    iter_in_epoch = 0
+    # Training Step Start
+    model.train()
+
+    training_loss = []
 
     for train_batch in tqdm(train_loader):
         if args.trainer == "binary_classification_static":
             train_x, train_y = train_batch
             train_x = train_x.to(device)
             train_y = train_y.to(device)
-        elif args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
+        elif args.trainer == "classification_txt" or args.trainer == "classification_audio":
             train_x, train_y = train_batch
             train_x = (train_x[0].to(device), train_x[1].to(device))
             train_y = train_y.to(device)
@@ -120,8 +117,6 @@ for epoch in range(1, args.epochs+1):
             train_y = train_y.to(device)
 
         iteration += 1
-        iter_in_epoch += 1
-        total_epoch_iteration += 1
 
         model, iter_loss = get_trainer(args = args,
                                        iteration = iteration,
@@ -137,55 +132,52 @@ for epoch in range(1, args.epochs+1):
 
         training_loss.append(iter_loss)
 
-        # Validation Step Start
-        if iteration % (iter_num_per_epoch) == 0:
-            model.eval()
-            val_iteration = 0
+    # Validation Step Start
+    model.eval()
 
-            validation_loss = []
+    validation_loss = []
 
-            with torch.no_grad():
-                for idx, val_batch in enumerate(val_loader):
-                    if args.trainer == "binary_classification_static":
-                        val_x, val_y = val_batch
-                        val_x = val_x.to(device)
-                        val_y = val_y.to(device)
-                    elif args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
-                        val_x, val_y = val_batch
-                        val_x = (val_x[0].to(device), val_x[1].to(device))
-                        val_y = val_y.to(device)
-                    elif args.trainer == "classification_audio_txt":
-                        val_x, val_y = val_batch
-                        val_x = (val_x[0].to(device), val_x[1].to(device), val_x[2].to(device), val_x[3].to(device))
-                        val_y = val_y.to(device)
+    with torch.no_grad():
+        for val_batch in val_loader:
+            if args.trainer == "binary_classification_static":
+                val_x, val_y = val_batch
+                val_x = val_x.to(device)
+                val_y = val_y.to(device)
+            elif args.trainer == "classification_txt" or args.trainer == "classification_audio":
+                val_x, val_y = val_batch
+                val_x = (val_x[0].to(device), val_x[1].to(device))
+                val_y = val_y.to(device)
+            elif args.trainer == "classification_audio_txt":
+                val_x, val_y = val_batch
+                val_x = (val_x[0].to(device), val_x[1].to(device), val_x[2].to(device), val_x[3].to(device))
+                val_y = val_y.to(device)
 
-                    model, val_loss = get_trainer(args = args,
-                                                  iteration = iteration,
-                                                  x = val_x,
-                                                  static = None,
-                                                  y = val_y,
-                                                  model = model,
-                                                  device = device,
-                                                  scheduler=scheduler,
-                                                  optimizer=optimizer,
-                                                  criterion=criterion,
-                                                  flow_type="val")
+            model, val_loss = get_trainer(args = args,
+                                          iteration = iteration,
+                                          x = val_x,
+                                          static = None,
+                                          y = val_y,
+                                          model = model,
+                                          device = device,
+                                          scheduler=scheduler,
+                                          optimizer=optimizer,
+                                          criterion=criterion,
+                                          flow_type="val")
 
-                    val_iteration += 1
-                    validation_loss.append(val_loss)
-            model.train()
+            validation_loss.append(val_loss)
     pbar.update(1)
 
-    print(len(training_loss))
-    print(len(validation_loss))
+    avg_validation_loss = sum(validation_loss) / len(validation_loss)
 
-    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(sum(validation_loss)/len(validation_loss)))
+    pbar.set_description("Training Loss : " + str(sum(training_loss) / len(training_loss)) + " / Val Loss : " + str(avg_validation_loss))
     pbar.refresh()
-    validation_loss_lst.append(sum(validation_loss)/len(validation_loss))
 
-    if len(validation_loss_lst) > 2 and min(validation_loss_lst) < validation_loss_lst[-1] and min(validation_loss_lst) < validation_loss_lst[-2] and min(validation_loss_lst) < validation_loss_lst[-3]:
-        break
+    if best_validation_loss > avg_validation_loss:
+        torch.save(model, './saved_models/best_model.pt')
+        best_validation_loss = avg_validation_loss
 
+# Test Step Start
+model = torch.load('./saved_models/best_model.pt').to(device)
 model.eval()
 with torch.no_grad():
     pred_batches = []
@@ -197,7 +189,7 @@ with torch.no_grad():
             test_x, test_y = test_batch
             test_x = test_x.to(device)
             test_y = test_y.to(device)
-        elif args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
+        elif args.trainer == "classification_txt" or args.trainer == "classification_audio":
             test_x, test_y = test_batch
             test_x = (test_x[0].to(device), test_x[1].to(device))
             test_y = test_y.to(device)
@@ -225,8 +217,6 @@ pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
 true = torch.cat(true_batches).cpu()
 
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
-
 print(classification_report(true, pred, target_names=target_names))
-print(validation_loss_lst)
 
-torch.save(model.txt_feature_extractor, './saved_models/txt_feature_extractor.pt')
+torch.save(model.txt_feature_extractor, './saved_models/audio_feature_extractor.pt')

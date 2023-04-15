@@ -1,6 +1,5 @@
 # Main Training File
 import os
-import math
 import random
 
 import numpy as np
@@ -49,15 +48,7 @@ else:
 print("Device Used : ", device)
 args.device = device
 
-if args.input_types == "static":
-    args.trainer = "binary_classification_static"
-elif args.input_types == "txt":
-    args.trainer = "classification_with_txt_static"
-elif args.input_types == "audio":
-    args.trainer = "classification_audio"
-elif args.input_types == "audio_txt":
-    args.trainer = "classification_audio_txt"
-elif args.input_types == "audio_txt_shortform":
+if args.input_types == "audio_txt_shortform":
     args.trainer = "classification_audio_txt_shortform"
 elif args.input_types == "txt_shortform":
     args.trainer = "classification_txt_shortform"
@@ -71,17 +62,9 @@ train_loader, val_loader, test_loader = get_data_loader(args)
 model = get_model(args)
 model = model(args).to(device)
 
-if "shortform" not in args.input_types:
-    if "audio" in args.input_types:
-        for param in model.audio_feature_extractor.parameters():
-            param.requires_grad = False
-    if "txt" in args.input_types:
-        for param in model.txt_feature_extractor.parameters():
-            param.requires_grad = False
-
-model_parameters = filter(lambda p: p.requires_grad, model.parameters())
-params = sum([np.prod(p.size()) for p in model_parameters])
-print(params)
+# model_parameters = filter(lambda p: p.requires_grad, model.parameters())
+# params = sum([np.prod(p.size()) for p in model_parameters])
+# print(params)
 
 # criterion = nn.BCELoss(reduction='mean')
 # frequency = np.array([363, 161, 665, 1714, 316, 526, 159])
@@ -102,40 +85,21 @@ print("# of Iterations (total): ",      iter_num_total)
 
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=1)
 
-model.train()
 iteration = 0
-total_epoch_iteration = 0
 
 pbar = tqdm(total=args.epochs, initial=0, bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}")
 
-validation_loss_lst = []
-accuracy_lst = []
-
-tolerance = 3
-over = 0
+best_f1_score = 0.0
 
 for epoch in range(1, args.epochs+1):
-    training_loss = []
-    validation_loss = []
 
-    epoch_losses = []
-    loss = 0
-    iter_in_epoch = 0
+    # Training Step Start
+    model.train()
+
+    training_loss = []
 
     for train_batch in tqdm(train_loader):
-        if args.trainer == "binary_classification_static":
-            train_x, train_y = train_batch
-            train_x = train_x.to(device)
-            train_y = train_y.to(device)
-        elif args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
-            train_x, train_y = train_batch
-            train_x = (train_x[0].to(device), train_x[1].to(device))
-            train_y = train_y.to(device)
-        elif args.trainer == "classification_audio_txt":
-            train_x, train_y = train_batch
-            train_x = (train_x[0].to(device), train_x[1].to(device), train_x[2].to(device), train_x[3].to(device))
-            train_y = train_y.to(device)
-        elif args.trainer == "classification_audio_txt_shortform":
+        if args.trainer == "classification_audio_txt_shortform":
             train_x, train_y = train_batch
             train_x = (train_x[0].to(device), train_x[1].to(device))
             train_y = train_y.to(device)
@@ -149,8 +113,6 @@ for epoch in range(1, args.epochs+1):
             train_y = train_y.to(device)
 
         iteration += 1
-        iter_in_epoch += 1
-        total_epoch_iteration += 1
 
         model, iter_loss = get_trainer(args = args,
                                        iteration = iteration,
@@ -166,77 +128,58 @@ for epoch in range(1, args.epochs+1):
 
         training_loss.append(iter_loss)
 
-        # Validation Step Start
-        if iteration % (iter_num_per_epoch) == 0:
-            model.eval()
-            val_iteration = 0
+    # Validation Step Start
+    model.eval()
 
-            validation_loss = []
+    validation_loss = []
 
-            with torch.no_grad():
-                pred_batches = []
-                true_batches = []
-                for idx, val_batch in enumerate(val_loader):
-                    if args.trainer == "binary_classification_static":
-                        val_x, val_y = val_batch
-                        val_x = val_x.to(device)
-                        val_y = val_y.to(device)
-                    elif args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
-                        val_x, val_y = val_batch
-                        val_x = (val_x[0].to(device), val_x[1].to(device))
-                        val_y = val_y.to(device)
-                    elif args.trainer == "classification_audio_txt":
-                        val_x, val_y = val_batch
-                        val_x = (val_x[0].to(device), val_x[1].to(device), val_x[2].to(device), val_x[3].to(device))
-                        val_y = val_y.to(device)
-                    elif args.trainer == "classification_audio_txt_shortform":
-                        val_x, val_y = val_batch
-                        val_x = (val_x[0].to(device), val_x[1].to(device))
-                        val_y = val_y.to(device)
-                    elif args.trainer == "classification_txt_shortform":
-                        val_x, val_y = val_batch
-                        val_x = val_x.to(device)
-                        val_y = val_y.to(device)
-                    elif args.trainer == "classification_audio_shortform":
-                        val_x, val_y = val_batch
-                        val_x = val_x.to(device)
-                        val_y = val_y.to(device)
+    with torch.no_grad():
+        pred_batches = []
+        true_batches = []
+        for val_batch in val_loader:
+            if args.trainer == "classification_audio_txt_shortform":
+                val_x, val_y = val_batch
+                val_x = (val_x[0].to(device), val_x[1].to(device))
+                val_y = val_y.to(device)
+            elif args.trainer == "classification_txt_shortform":
+                val_x, val_y = val_batch
+                val_x = val_x.to(device)
+                val_y = val_y.to(device)
+            elif args.trainer == "classification_audio_shortform":
+                val_x, val_y = val_batch
+                val_x = val_x.to(device)
+                val_y = val_y.to(device)
 
-                    pred, val_loss = get_trainer(args = args,
-                                                 iteration = iteration,
-                                                 x = val_x,
-                                                 static = None,
-                                                 y = val_y,
-                                                 model = model,
-                                                 device = device,
-                                                 scheduler=scheduler,
-                                                 optimizer=optimizer,
-                                                 criterion=criterion,
-                                                 flow_type="val")
-                    pred_batches.append(pred)
-                    true_batches.append(val_y)
+            pred, val_loss = get_trainer(args = args,
+                                            iteration = iteration,
+                                            x = val_x,
+                                            static = None,
+                                            y = val_y,
+                                            model = model,
+                                            device = device,
+                                            scheduler=scheduler,
+                                            optimizer=optimizer,
+                                            criterion=criterion,
+                                            flow_type="val")
+            pred_batches.append(pred)
+            true_batches.append(val_y)
 
-                    val_iteration += 1
-                    validation_loss.append(val_loss)
-            model.train()
+            validation_loss.append(val_loss)
     pbar.update(1)
-
-    validation_loss_lst.append(sum(validation_loss)/len(validation_loss))
 
     pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
     true = torch.cat(true_batches).cpu()
-    accuracy_lst.append(accuracy_score(pred, true))
+    now_f1_score = f1_score(pred, true, average='weighted')
 
-    pbar.set_description("Training Loss : " + str(sum(training_loss)/len(training_loss)) + " / Val Loss : " + str(accuracy_lst[-1]) + " / Accuracy : " + str(accuracy_lst[-1]))
+    pbar.set_description("Training Loss : " + str(sum(training_loss) / len(training_loss)) + " / Val Loss : " + str(sum(validation_loss) / len(validation_loss)) + " / Accuracy : " + str(now_f1_score))
     pbar.refresh()
 
-    # Alternative stopping criterion
-    # if len(f1_score_lst) >= 5 and f1_score_lst[-1] - f1_score_lst[-2] < 0.005:
-    #     break
+    if best_f1_score < now_f1_score:
+        torch.save(model, './saved_models/best_model.pt')
+        best_f1_score = now_f1_score
 
-    if len(f1_score_lst) > 5 and ((max(f1_score_lst) > f1_score_lst[-1] and max(f1_score_lst) > f1_score_lst[-2] and max(f1_score_lst) > f1_score_lst[-3]) or (f1_score_lst[-1] == f1_score_lst[-2] and f1_score_lst[-1] == f1_score_lst[-3])):
-        break
-
+# Test Step Start
+model = torch.load('./saved_models/best_model.pt').to(device)
 model.eval()
 with torch.no_grad():
     pred_batches = []
@@ -244,19 +187,7 @@ with torch.no_grad():
 
     for test_batch in tqdm(test_loader, total=len(test_loader),
                            bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}"):
-        if args.trainer == "binary_classification_static":
-            test_x, test_y = test_batch
-            test_x = test_x.to(device)
-            test_y = test_y.to(device)
-        elif args.trainer == "classification_with_txt_static" or args.trainer == "classification_audio":
-            test_x, test_y = test_batch
-            test_x = (test_x[0].to(device), test_x[1].to(device))
-            test_y = test_y.to(device)
-        elif args.trainer == "classification_audio_txt":
-            test_x, test_y = test_batch
-            test_x = (test_x[0].to(device), test_x[1].to(device), test_x[2].to(device), test_x[3].to(device))
-            test_y = test_y.to(device)
-        elif args.trainer == "classification_audio_txt_shortform":
+        if args.trainer == "classification_audio_txt_shortform":
             test_x, test_y = test_batch
             test_x = (test_x[0].to(device), test_x[1].to(device))
             test_y = test_y.to(device)
@@ -288,12 +219,10 @@ pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
 true = torch.cat(true_batches).cpu()
 
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
-
 print(classification_report(true, pred, target_names=target_names))
-print(f1_score(true, pred, average='weighted'))
-print(precision_score(true, pred, average='weighted'))
-print(recall_score(true, pred, average='weighted'))
-print(validation_loss_lst)
+print("f1 score : " + str(f1_score(true, pred, average='weighted')))
+print("precision score : " + str(precision_score(true, pred, average='weighted')))
+print("recall score : " + str(recall_score(true, pred, average='weighted')))
 # print(model.mbt_layers[0].audio_weight)
 # print(model.mbt_layers[0].txt_weight)
 # print(model.mbt_layers[1].audio_weight)

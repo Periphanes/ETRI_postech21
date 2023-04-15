@@ -28,6 +28,7 @@ class Wav2Vec2FeatureExtractor(Wav2Vec2PreTrainedModel):
         outputs = self.wav2vec2(x, attention_mask=attention_mask)
         return outputs['extract_features']
 
+
 class WAV2VEC2_MODIFIED(nn.Module):
     def __init__(self, args):
         super().__init__()
