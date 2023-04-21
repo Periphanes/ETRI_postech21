@@ -145,7 +145,8 @@ for file_name in tqdm(annotation_csv_files):
             X_audio_attention = torch.Tensor(audio_attention).to(device)
 
             audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
-            sample_point["audio_output"] = audio_output[:, 0, :].cpu()
+            # sample_point["audio_output"] = audio_output[:, 0, :].cpu()
+            sample_point["audio_output"] = torch.mean(audio_output, dim=1).cpu()
 
             wav_file_dir = "dataset/KEMDy19/wav/Session" + str(session_num).zfill(2) + "/" + sample_point["segment_id"][:-5]
 
@@ -166,7 +167,7 @@ for file_name in tqdm(annotation_csv_files):
                     sample_point["text"] = text
 
                     text_output = txt_feature_extractor(input_ids.unsqueeze(0), attention_mask=attention_mask.unsqueeze(0)).last_hidden_state
-                    sample_point["text_output"] = text_output[:,0,:].cpu()
+                    sample_point["text_output"] = text_output[:, 0, :].cpu()
 
             except FileNotFoundError:
                 sample_point["text"] = None
@@ -235,7 +236,8 @@ for file_name in tqdm(annotation_csv_files):
             X_audio_attention = torch.Tensor(audio_attention).to(device)
 
             audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
-            sample_point["audio_output"] = audio_output[:, 0, :].cpu()
+            # sample_point["audio_output"] = audio_output[:, 0, :].cpu()
+            sample_point["audio_output"] = torch.mean(audio_output, dim=1).cpu()
 
             wav_file_dir = "dataset/KEMDy20/wav/Session" + str(session_num).zfill(2)
 
@@ -334,7 +336,8 @@ for file_name in tqdm(annotation_csv_files):
             X_audio_attention = torch.Tensor(audio_attention).to(device)
 
             audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
-            sample_point["audio_output"] = audio_output[:, 0, :].cpu()
+            # sample_point["audio_output"] = audio_output[:, 0, :].cpu()
+            sample_point["audio_output"] = torch.mean(audio_output, dim=1).cpu()
 
             inputs = tokenizer(
                                 row[1],
@@ -421,7 +424,8 @@ for file_name in tqdm(annotation_csv_files):
             X_audio_attention = torch.Tensor(audio_attention).to(device)
 
             audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
-            sample_point["audio_output"] = audio_output[:, 0, :].cpu()
+            # sample_point["audio_output"] = audio_output[:, 0, :].cpu()
+            sample_point["audio_output"] = torch.mean(audio_output, dim=1).cpu()
 
             inputs = tokenizer(
                                 row[1],
@@ -511,7 +515,8 @@ for file_name in tqdm(annotation_csv_files):
             X_audio_attention = torch.Tensor(audio_attention).to(device)
 
             audio_output = audio_feature_extractor(X_audio.unsqueeze(0), attention_mask=X_audio_attention.unsqueeze(0))
-            sample_point["audio_output"] = audio_output[:,0,:].cpu()
+            # sample_point["audio_output"] = audio_output[:, 0, :].cpu()
+            sample_point["audio_output"] = torch.mean(audio_output, dim=1).cpu()
 
             inputs = tokenizer(
                                 row[1],

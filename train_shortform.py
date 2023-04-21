@@ -67,7 +67,7 @@ model = model(args).to(device)
 # print(params)
 
 # criterion = nn.BCELoss(reduction='mean')
-# frequency = np.array([363, 161, 665, 1714, 316, 526, 159])
+# frequency = np.array([223, 66, 435, 2904, 175, 444, 105])
 frequency = np.array([1, 1, 1, 1, 1, 1, 1])
 frequency = 1 / frequency
 frequency = frequency / sum(frequency) * 7
@@ -89,7 +89,7 @@ iteration = 0
 
 pbar = tqdm(total=args.epochs, initial=0, bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}")
 
-best_f1_score = 0.0
+best_validation_loss = 100
 
 for epoch in range(1, args.epochs+1):
 
@@ -170,13 +170,13 @@ for epoch in range(1, args.epochs+1):
     pred = torch.argmax(torch.cat(pred_batches), dim=1).cpu()
     true = torch.cat(true_batches).cpu()
     now_f1_score = f1_score(pred, true, average='weighted')
-
-    pbar.set_description("Training Loss : " + str(sum(training_loss) / len(training_loss)) + " / Val Loss : " + str(sum(validation_loss) / len(validation_loss)) + " / Accuracy : " + str(now_f1_score))
-    pbar.refresh()
-
-    if best_f1_score < now_f1_score:
+    now_validation_loss = sum(validation_loss) / len(validation_loss)
+    if best_validation_loss > now_validation_loss:
         torch.save(model, './saved_models/best_model.pt')
-        best_f1_score = now_f1_score
+        best_validation_loss = now_validation_loss
+
+    pbar.set_description("Training Loss : " + str(sum(training_loss) / len(training_loss)) + " / Val Loss : " + str(now_validation_loss) + " / f1 score : " + str(now_f1_score))
+    pbar.refresh()
 
 # Test Step Start
 model = torch.load('./saved_models/best_model.pt').to(device)
@@ -220,9 +220,9 @@ true = torch.cat(true_batches).cpu()
 
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 print(classification_report(true, pred, target_names=target_names))
-print("f1 score : " + str(f1_score(true, pred, average='weighted')))
-print("precision score : " + str(precision_score(true, pred, average='weighted')))
-print("recall score : " + str(recall_score(true, pred, average='weighted')))
+print("f1 score : " + str(f1_score(true, pred, average='weighted', zero_division=0)))
+print("precision score : " + str(precision_score(true, pred, average='weighted', zero_division=0)))
+print("recall score : " + str(recall_score(true, pred, average='weighted', zero_division=0)))
 # print(model.mbt_layers[0].audio_weight)
 # print(model.mbt_layers[0].txt_weight)
 # print(model.mbt_layers[1].audio_weight)

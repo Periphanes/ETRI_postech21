@@ -8,7 +8,8 @@ class WAV2VEC2_MODIFIED_SHORTFORM(nn.Module):
 
         self.num_labels = args.num_labels
 
-        self.dense = nn.Linear(512, 256)
+        # self.dense = nn.Linear(512, 256)
+        self.dense = nn.Linear(1024, 256)
         self.dropout = nn.Dropout(0.1)
         self.out_proj = nn.Linear(256, self.num_labels)
 

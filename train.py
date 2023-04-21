@@ -94,6 +94,7 @@ iteration = 0
 pbar = tqdm(total=args.epochs, initial=0, bar_format="{desc:<5}{percentage:3.0f}%|{bar:10}{r_bar}")
 
 best_validation_loss = 10.0
+validation_loss_lst = []
 
 for epoch in range(1, args.epochs+1):
 
@@ -168,12 +169,14 @@ for epoch in range(1, args.epochs+1):
     pbar.update(1)
 
     avg_validation_loss = sum(validation_loss) / len(validation_loss)
+    validation_loss_lst.append(avg_validation_loss)
 
     pbar.set_description("Training Loss : " + str(sum(training_loss) / len(training_loss)) + " / Val Loss : " + str(avg_validation_loss))
     pbar.refresh()
 
     if best_validation_loss > avg_validation_loss:
         torch.save(model, './saved_models/best_model.pt')
+        torch.save(model.audio_feature_extractor, './saved_models/audio_feature_extractor' + str(epoch) + '.pt')
         best_validation_loss = avg_validation_loss
 
 # Test Step Start
@@ -218,5 +221,5 @@ true = torch.cat(true_batches).cpu()
 
 target_names = ["surprise", "fear", "angry", "neutral", "sad", "happy", "disgust"]
 print(classification_report(true, pred, target_names=target_names))
-
-torch.save(model.txt_feature_extractor, './saved_models/audio_feature_extractor.pt')
+print(validation_loss_lst)
+print(np.argmin(validation_loss_lst)+1)

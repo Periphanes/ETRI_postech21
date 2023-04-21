@@ -15,7 +15,8 @@ class AUDIO_TXT_BASIC_SHORTFORM(nn.Module):
         self.transformer_num_layers = args.transformer_layers
 
         self.txt_resize_ff = nn.Linear(768, 512)
-        self.audio_resize_ff = nn.Linear(512, 512)
+        # self.audio_resize_ff = nn.Linear(512, 512)
+        self.audio_resize_ff = nn.Linear(1024, 512)
         self.cls_tokens = nn.Parameter(torch.randn(args.batch_size, 512)).to(args.device)
 
         encoder_layer = nn.TransformerEncoderLayer(512 * 2, nhead=self.transformer_num_head, dim_feedforward=self.transformer_ff_dim, dropout=self.transformer_dropout, activation=self.transformer_activation)

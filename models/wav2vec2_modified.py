@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -26,7 +27,8 @@ class Wav2Vec2FeatureExtractor(Wav2Vec2PreTrainedModel):
 
     def forward(self, x, attention_mask=None):
         outputs = self.wav2vec2(x, attention_mask=attention_mask)
-        return outputs['extract_features']
+        # return outputs['extract_features']
+        return outputs['last_hidden_state']
 
 
 class WAV2VEC2_MODIFIED(nn.Module):
@@ -44,7 +46,8 @@ class WAV2VEC2_MODIFIED(nn.Module):
 
         self.audio_feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("kresnik/wav2vec2-large-xlsr-korean", config=config)
 
-        self.dense = nn.Linear(512, 256)
+        # self.dense = nn.Linear(512, 256)
+        self.dense = nn.Linear(1024, 256)
         self.dropout = nn.Dropout(0.1)
         self.out_proj = nn.Linear(256, self.num_labels)
 
@@ -54,6 +57,7 @@ class WAV2VEC2_MODIFIED(nn.Module):
         audio_out = self.audio_feature_extractor(x, attention_mask=attention_mask)
 
         x = audio_out[:, 0, :]
+        # x = torch.mean(audio_out, dim=1)
         x = self.dropout(x)
         x = self.dense(x)
         x = F.gelu(x)

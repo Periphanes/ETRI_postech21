@@ -4,7 +4,7 @@ from .trainer import *
 def get_trainer(args, iteration, x, static, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     if args.trainer == "binary_classification_static":
         model, iter_loss = binary_classification_static(args, iteration, x, y, model, device, scheduler, optimizer, criterion, flow_type)
-    elif args.trainer == "classification_with_txt_static":
+    elif args.trainer == "classification_txt":
         model, iter_loss = classification_txt(args, iteration, x[0], x[1], y, model, device, scheduler, optimizer, criterion, flow_type)
     elif args.trainer == "classification_audio":
         model, iter_loss = classification_audio(args, iteration, x[0], x[1], y, model, device, scheduler, optimizer, criterion, flow_type)

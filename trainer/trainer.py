@@ -34,7 +34,7 @@ def binary_classification_static(args, iteration, x, y, model, device, scheduler
     return model, loss.item()
 
 
-def classification_with_txt_static(args, iteration, x1, x2, y, model, device, scheduler, optimizer, criterion, flow_type=None):
+def classification_txt(args, iteration, x1, x2, y, model, device, scheduler, optimizer, criterion, flow_type=None):
     x1 = x1.type(torch.LongTensor).to(device)
     x2 = x2.type(torch.LongTensor).to(device)
     y = y.type(torch.LongTensor).to(device)

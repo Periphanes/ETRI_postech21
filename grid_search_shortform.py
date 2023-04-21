@@ -16,7 +16,9 @@ from models import get_model
 from trainer import get_trainer
 from data.data_preprocess import get_data_loader
 
-from sklearn.metrics import classification_report, f1_score, accuracy_score, precision_score, recall_score
+from sklearn.metrics import classification_report
+from sklearn.metrics import f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score
 from transformers import AutoConfig
 
 log_directory = os.path.join(args.dir_result, args.project_name)
